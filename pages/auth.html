@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login / Signup — HealthAI Pro</title>
+    <meta name="description"
+        content="Sign in or create your HealthAI Pro account to start your personalized health journey." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .auth-card {
+            background: rgba(6, 15, 30, 0.85);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
+            backdrop-filter: blur(30px);
+        }
+
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 2rem;
+        }
+
+        .auth-tab {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.625rem;
+            border-radius: calc(var(--radius-md) - 2px);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .auth-tab.active {
+            background: var(--grad-primary);
+            color: white;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-submit {
+            width: 100%;
+            background: var(--grad-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.35);
+        }
+
+        .auth-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 1.25rem;
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .input-wrapper .form-input {
+            padding-left: 2.75rem;
+        }
+
+        .input-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .auth-bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.07) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .password-strength {
+            margin-top: 0.25rem;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+    <div class="auth-bg-glow"></div>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#lg1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#lg1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="lg1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 style="text-align:center;font-size:1.6rem;margin-bottom:0.25rem;">Welcome Back</h1>
+                <p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.75rem;">Your AI
+                    health journey continues here</p>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+                    <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+                </div>
+
+                <div id="authAlert" class="alert alert-error"></div>
+
+                <!-- Login Form -->
+                <div class="form-panel active" id="loginPanel">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" class="form-input" id="loginEmail" placeholder="your@email.com" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display:flex;justify-content:space-between;">
+                            <span>Password</span>
+                            <a href="#" style="color:var(--primary);font-size:0.8rem;">Forgot password?</a>
+                        </label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" class="form-input" id="loginPassword"
+                                placeholder="Enter your password" />
+                            <button class="input-toggle" onclick="togglePassword('loginPassword', this)">👁</button>
+                        </div>
+                    </div>
+                    <button class="auth-submit" id="loginBtn" onclick="handleLogin()">
+                        <span>Sign In to Dashboard</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <div class="auth-divider">or continue with</div>
+                    <button class="social-btn" onclick="handleSocialLogin('google')">
+                        <span style="font-size:1.2rem;">G</span>
+                        <span
+                            style="fontWeight:600;background:linear-gradient(135deg,#4285F4,#EA4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">oogle</span>
+                    </button>
+                </div>
+
+                <!-- Signup Form -->
+                <div class="form-panel" id="signupPanel">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-input" id="signupFirst" placeholder="John" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" id="signupLast" placeholder="Doe" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" class="form-input" id="signupEmail" placeholder="your@email.com" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" class="form-input" id="signupPassword"
+                                placeholder="Min. 8 characters" oninput="checkPasswordStrength(this.value)" />
+                            <button class="input-toggle" onclick="togglePassword('signupPassword', this)">👁</button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength" style="display:none;">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <div class="strength-text" id="strengthText"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔐</span>
+                            <input type="password" class="form-input" id="signupConfirm"
+                                placeholder="Repeat your password" />
+                        </div>
+                    </div>
+                    <button class="auth-submit" id="signupBtn" onclick="handleSignup()">
+                        <span>Create Account</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <p class="auth-footer">By signing up you agree to our <a href="#">Terms</a> and <a href="#">Privacy
+                            Policy</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        function switchTab(tab) {
+            document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+            document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+            document.getElementById('loginPanel').classList.toggle('active', tab === 'login');
+            document.getElementById('signupPanel').classList.toggle('active', tab === 'signup');
+            hideAlert();
+        }
+
+        function showAlert(msg, type = 'error') {
+            const el = document.getElementById('authAlert');
+            el.textContent = msg;
+            el.className = `alert alert-${type}`;
+            el.style.display = 'block';
+        }
+        function hideAlert() {
+            document.getElementById('authAlert').style.display = 'none';
+        }
+
+        function togglePassword(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+            else { input.type = 'password'; btn.textContent = '👁'; }
+        }
+
+        function checkPasswordStrength(val) {
+            const el = document.getElementById('passwordStrength');
+            const fill = document.getElementById('strengthFill');
+            const text = document.getElementById('strengthText');
+            el.style.display = 'block';
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const w = [0, 25, 50, 75, 100];
+            const c = ['', '#ff4757', '#ffb347', '#00d4ff', '#00ff88'];
+            const l = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+            fill.style.width = w[score] + '%';
+            fill.style.background = c[score];
+            text.textContent = l[score] ? `Password strength: ${l[score]}` : '';
+            text.style.color = c[score];
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) { showAlert('Please fill in all fields'); return; }
+            if (!/\S+@\S+\.\S+/.test(email)) { showAlert('Please enter a valid email'); return; }
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+            setTimeout(() => {
+                // Store user session
+                localStorage.setItem('healthai_user', JSON.stringify({ email, name: email.split('@')[0], loggedIn: true }));
+                btn.innerHTML = '✅ Signing in...';
+                setTimeout(() => { window.location.href = 'profile.html'; }, 500);
+            }, 1200);
+        }
+
+        function handleSignup() {
+            const first = document.getElementById('signupFirst').value;
+            const last = document.getElementById('signupLast').value;
+            const email = document.getElementById('signupEmail').value;
+            const pass = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            if (!first || !last || !email || !pass || !confirm) { showAlert('Please fill in all fields'); return; }
+            if (!/\S+@\S+\.\S+/.test(email)) { showAlert('Invalid email address'); return; }
+            if (pass.length < 8) { showAlert('Password must be at least 8 characters'); return; }
+            if (pass !== confirm) { showAlert('Passwords do not match'); return; }
+            const btn = document.getElementById('signupBtn');
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+            setTimeout(() => {
+                localStorage.setItem('healthai_user', JSON.stringify({ email, name: `${first} ${last}`, loggedIn: true }));
+                btn.innerHTML = '✅ Account created!';
+                showAlert('Account created successfully! Setting up your profile...', 'success');
+                setTimeout(() => { window.location.href = 'profile.html'; }, 1000);
+            }, 1500);
+        }
+
+        function handleSocialLogin(provider) {
+            localStorage.setItem('healthai_user', JSON.stringify({ email: 'demo@healthai.com', name: 'Health User', loggedIn: true }));
+            window.location.href = 'profile.html';
+        }
+
+        // Check if already logged in
+        const user = JSON.parse(localStorage.getItem('healthai_user') || '{}');
+        if (user.loggedIn) {
+            // Add a banner
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,255,136,0.15);border:1px solid var(--success);color:var(--success);padding:0.5rem 1.5rem;border-radius:var(--radius-full);font-size:0.85rem;z-index:100;';
+            banner.textContent = `Already signed in as ${user.name} · `;
+            const dashLink = document.createElement('a');
+            dashLink.href = 'dashboard.html';
+            dashLink.style.color = 'var(--success)';
+            dashLink.style.fontWeight = '600';
+            dashLink.textContent = 'Go to Dashboard →';
+            banner.appendChild(dashLink);
+            document.body.appendChild(banner);
+        }
+    </script>
+</body>
+
+</html>

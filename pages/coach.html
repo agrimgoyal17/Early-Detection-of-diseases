@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Health Coach — HealthAI Pro</title>
+    <meta name="description"
+        content="Get a personalized daily health plan from your AI health coach based on your data." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .coach-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .coach-avatar-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.06));
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .coach-avatar {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .coach-name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .coach-greeting {
+            background: rgba(6, 15, 30, 0.5);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .coach-greeting::before {
+            content: '"';
+            font-size: 3rem;
+            color: var(--primary);
+            opacity: 0.3;
+            position: absolute;
+            top: -0.5rem;
+            left: 0.75rem;
+        }
+
+        .plan-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .plan-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .plan-tab.active {
+            background: var(--grad-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        .plan-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .task-item:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.04);
+        }
+
+        .task-item.done {
+            border-color: rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.04);
+        }
+
+        .task-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition);
+        }
+
+        .task-item.done .task-check {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .task-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .task-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.15rem;
+        }
+
+        .task-points {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-full);
+        }
+
+        .schedule-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .schedule-item {
+            display: flex;
+            gap: 1rem;
+            padding-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .schedule-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 52px;
+            bottom: 0;
+            width: 1px;
+            background: var(--border);
+        }
+
+        .schedule-time {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 65px;
+            flex-shrink: 0;
+            padding-top: 0.75rem;
+            text-align: right;
+        }
+
+        .schedule-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            flex-shrink: 0;
+            margin-top: 0.65rem;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+        }
+
+        .schedule-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.875rem;
+        }
+
+        .schedule-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .schedule-detail {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .tips-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+        .tip-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .tip-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ── ARIA Chat ── */
+        .aria-chat-card {
+            background: rgba(6, 15, 30, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .aria-chat-header {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.12), rgba(123, 47, 247, 0.10));
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+        }
+
+        .aria-avatar-sm {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .aria-chat-info {
+            flex: 1;
+        }
+
+        .aria-chat-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .aria-chat-status {
+            font-size: 0.7rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .aria-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .aria-messages {
+            height: 280px;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            scroll-behavior: smooth;
+        }
+
+        .aria-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .aria-messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .msg-bubble {
+            max-width: 88%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .msg-bubble.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .msg-bubble.aria {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .msg-text {
+            padding: 0.65rem 0.9rem;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+
+        .msg-bubble.user .msg-text {
+            background: var(--grad-primary);
+            color: white;
+            border-radius: 14px 14px 4px 14px;
+        }
+
+        .msg-bubble.aria .msg-text {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 14px 14px 14px 4px;
+        }
+
+        .msg-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .typing-indicator .msg-text {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.75rem 1rem;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typingBounce 1.2s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            30% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
+        }
+
+        .aria-quick-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quick-q-btn {
+            background: rgba(0, 212, 255, 0.06);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-full);
+            color: var(--primary);
+            font-size: 0.7rem;
+            padding: 0.25rem 0.65rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .quick-q-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--primary);
+        }
+
+        .aria-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .aria-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.82rem;
+            padding: 0.55rem 1rem;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .aria-input:focus {
+            border-color: var(--primary);
+        }
+
+        .aria-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .aria-send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+
+        .aria-send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        @media (max-width: 900px) {
+            .coach-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="health-data.html" class="nav-link">Health Data</a>
+                <a href="gamification.html" class="nav-link">Health Score</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="dashboard.html" class="btn-nav-primary">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">💪 AI <span class="gradient-text">Health Coach</span></h1>
+        <p class="page-subtitle">Your personalized AI coach — daily plans crafted from your unique health data</p>
+    </div>
+
+    <div class="page-content">
+        <div class="coach-layout">
+            <!-- Left: Plan -->
+            <div>
+                <!-- Coach Greeting -->
+                <div class="coach-avatar-card">
+                    <div class="coach-avatar">🤖</div>
+                    <div class="coach-name">Coach ARIA</div>
+                    <div style="font-size:0.75rem;color:var(--primary);margin-bottom:0.25rem;">AI Responsive
+                        Intelligence Assistant</div>
+                    <div class="coach-greeting" id="coachGreeting">
+                        Good evening! Based on your health data, I've crafted a personalized plan to help you reduce
+                        your diabetes risk and improve cardiovascular health. Your stress levels are moderate —
+                        let's prioritize sleep and movement today. You got this! 💪
+                    </div>
+                </div>
+
+                <!-- Plan Tabs -->
+                <div class="plan-tabs">
+                    <button class="plan-tab active" onclick="showPlan('today', this)">📅 Today</button>
+                    <button class="plan-tab" onclick="showPlan('exercise', this)">🏋️ Exercise Plan</button>
+                    <button class="plan-tab" onclick="showPlan('diet', this)">🥗 Diet Plan</button>
+                    <button class="plan-tab" onclick="showPlan('sleep', this)">😴 Sleep Plan</button>
+                </div>
+
+                <!-- Today's Tasks -->
+                <div id="plan-today">
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>🌅</span> Morning Routine</div>
+                        <div class="task-list">
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🥤</div>
+                                <div class="task-content">
+                                    <div class="task-title">Drink 500ml water immediately after waking</div>
+                                    <div class="task-subtitle">Rehydrates body after 7-8 hours of sleep</div>
+                                </div>
+                                <div class="task-points">+3 pts</div>
+                            </div>
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🧘</div>
+                                <div class="task-content">
+                                    <div class="task-title">10 minutes morning meditation or breathing</div>
+                                    <div class="task-subtitle">Reduces cortisol by 26% when done consistently</div>
+                                </div>
+                                <div class="task-points">+5 pts</div>
+                            </div>
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🍌</div>
+                                <div class="task-content">
+                                    <div class="task-title">Healthy breakfast — include protein and fiber</div>
+                                    <div class="task-subtitle">Eggs, oats, or yogurt with fruits recommended</div>
+                                </div>
+                                <div class="task-points">+5 pts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>☀️</span> Afternoon Goals</div>
+                        <div class="task-list">
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🚶</div>
+                                <div class="task-content">
+                                    <div class="task-title">Walk 30 minutes (brisk pace)</div>
+                                    <div class="task-subtitle">Burns ~130 calories, improves insulin sensitivity</div>
+                                </div>
+                                <div class="task-points">+10 pts</div>
+                            </div>
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">💧</div>
+                                <div class="task-content">
+                                    <div class="task-title">Drink 2.5L water throughout the day</div>
+                                    <div class="task-subtitle">Reduces sugar cravings and flushes toxins</div>
+                                </div>
+                                <div class="task-points">+5 pts</div>
+                            </div>
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🥗</div>
+                                <div class="task-content">
+                                    <div class="task-title">Reduce sugar intake — avoid soft drinks</div>
+                                    <div class="task-subtitle">High sugar linked to your detected diabetes risk</div>
+                                </div>
+                                <div class="task-points">+8 pts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>🌙</span> Evening Routine</div>
+                        <div class="task-list">
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">📵</div>
+                                <div class="task-content">
+                                    <div class="task-title">No screens 1 hour before sleep</div>
+                                    <div class="task-subtitle">Blue light disrupts melatonin by up to 50%</div>
+                                </div>
+                                <div class="task-points">+6 pts</div>
+                            </div>
+                            <div class="task-item" onclick="toggleTask(this)">
+                                <div class="task-check">✓</div>
+                                <div class="task-icon">🛌</div>
+                                <div class="task-content">
+                                    <div class="task-title">Sleep by 11:00 PM — 7 hours minimum</div>
+                                    <div class="task-subtitle">Your AI detected insufficient sleep risk factor</div>
+                                </div>
+                                <div class="task-points">+8 pts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exercise Plan -->
+                <div id="plan-exercise" style="display:none;">
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>🏋️</span> Weekly Exercise Schedule</div>
+                        <div class="schedule-timeline">
+                            <div class="schedule-item">
+                                <div class="schedule-time">MON</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Brisk Walk 30min + Stretching 10min</div>
+                                    <div class="schedule-detail">Low intensity cardio — ideal for beginners · Burns ~140
+                                        kcal</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">TUE</div>
+                                <div class="schedule-dot" style="background:linear-gradient(135deg,#00ff88,#00d4ff);">
+                                </div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Yoga / Meditation 20min</div>
+                                    <div class="schedule-detail">Reduces cortisol and improves flexibility · Targets
+                                        your stress risk</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">WED</div>
+                                <div class="schedule-dot" style="background:linear-gradient(135deg,#7b2ff7,#ff6b6b);">
+                                </div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Strength Training 30min (body weight)</div>
+                                    <div class="schedule-detail">Squats, push-ups, lunges · Builds metabolism · Burns
+                                        ~200 kcal</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">THU</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Rest Day + 20min Walk</div>
+                                    <div class="schedule-detail">Active recovery · keeps metabolism up</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">FRI</div>
+                                <div class="schedule-dot" style="background:linear-gradient(135deg,#ff4757,#ffb347);">
+                                </div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Cycling or Swimming 40min</div>
+                                    <div class="schedule-detail">Joint-friendly cardio · Burns ~280 kcal · Great heart
+                                        health booster</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">SAT</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Sports + Social Activity 60min</div>
+                                    <div class="schedule-detail">Badminton, cricket or dance · Fun activity boosts
+                                        consistency</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">SUN</div>
+                                <div class="schedule-dot" style="background:linear-gradient(135deg,#00ff88,#7b2ff7);">
+                                </div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Deep Rest + 30min Nature Walk</div>
+                                    <div class="schedule-detail">Full recovery day · Nature reduces stress hormones by
+                                        16%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diet Plan -->
+                <div id="plan-diet" style="display:none;">
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>🌅</span> Breakfast (7–9 AM)</div>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <div class="task-icon">🥣</div>
+                                <div class="task-content">
+                                    <div class="task-title">Oatmeal with banana and almonds</div>
+                                    <div class="task-subtitle">320 kcal · 12g protein · Low glycemic index</div>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-icon">🍳</div>
+                                <div class="task-content">
+                                    <div class="task-title">2 eggs + whole wheat toast (alternative)</div>
+                                    <div class="task-subtitle">280 kcal · 18g protein · Rich in B12</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>☀️</span> Lunch (12–2 PM)</div>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <div class="task-icon">🍛</div>
+                                <div class="task-content">
+                                    <div class="task-title">Brown rice + dal + vegetables + curd</div>
+                                    <div class="task-subtitle">450 kcal · Complete nutrition · Rich in fiber</div>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-icon">🥗</div>
+                                <div class="task-content">
+                                    <div class="task-title">Large salad with paneer or chicken</div>
+                                    <div class="task-subtitle">320 kcal · High protein, low carb alternative</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>🌙</span> Dinner (7–8:30 PM)</div>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <div class="task-icon">🥘</div>
+                                <div class="task-content">
+                                    <div class="task-title">Light vegetable soup + 2 chapati</div>
+                                    <div class="task-subtitle">320 kcal · Easy to digest for night</div>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-icon">🐟</div>
+                                <div class="task-content">
+                                    <div class="task-title">Grilled fish/chicken with steamed vegs</div>
+                                    <div class="task-subtitle">350 kcal · Omega-3 rich · Heart healthy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-card" style="background:rgba(255,71,87,0.04);border-color:rgba(255,71,87,0.2);">
+                        <div class="plan-section-title" style="color:var(--danger);"><span>🚫</span> Foods to Avoid
+                        </div>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <div class="task-icon">🥤</div>
+                                <div class="task-content">
+                                    <div class="task-title">Sugary drinks and soft beverages</div>
+                                    <div class="task-subtitle">Linked to your detected diabetes risk factor</div>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-icon">🍟</div>
+                                <div class="task-content">
+                                    <div class="task-title">Fried fast food more than once a week</div>
+                                    <div class="task-subtitle">High trans-fat damages cardiovascular health</div>
+                                </div>
+                            </div>
+                            <div class="task-item">
+                                <div class="task-icon">🧂</div>
+                                <div class="task-content">
+                                    <div class="task-title">Excessive salt (>5g/day)</div>
+                                    <div class="task-subtitle">Raises blood pressure — linked to hypertension risk</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sleep Plan -->
+                <div id="plan-sleep" style="display:none;">
+                    <div class="plan-card">
+                        <div class="plan-section-title"><span>😴</span> Optimized Sleep Protocol</div>
+                        <div class="schedule-timeline">
+                            <div class="schedule-item">
+                                <div class="schedule-time">9:00 PM</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Dim the lights</div>
+                                    <div class="schedule-detail">Signal your body that night is approaching · Triggers
+                                        melatonin release</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">9:30 PM</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">No more caffeine or heavy meals</div>
+                                    <div class="schedule-detail">Caffeine stays in system for 5-6 hours · Can disrupt
+                                        sleep architecture</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">10:00 PM</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Put away all screens</div>
+                                    <div class="schedule-detail">Blue light suppresses melatonin by up to 50% — read a
+                                        book instead</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">10:15 PM</div>
+                                <div class="schedule-dot"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Breathing or journaling for 10min</div>
+                                    <div class="schedule-detail">4-7-8 breathing reduces sleep latency by 40%</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">10:30 PM</div>
+                                <div class="schedule-dot" style="background:var(--grad-secondary);"></div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Lights out — Target sleep</div>
+                                    <div class="schedule-detail">Room temp: 18–20°C optimal · 7–8 hours target</div>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">6:30 AM</div>
+                                <div class="schedule-dot" style="background:linear-gradient(135deg,#ffcd39,#ffb347);">
+                                </div>
+                                <div class="schedule-content">
+                                    <div class="schedule-title">Wake up — no snooze</div>
+                                    <div class="schedule-detail">Consistent wake time regulates your circadian rhythm
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Daily Score + ARIA Chat + Tips -->
+            <div>
+                <div class="plan-card" style="text-align:center;margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">📊 Today's Progress</h3>
+                    <div class="score-circle" style="margin:0 auto 1rem;">
+                        <div class="score-value" id="todayProgress">0</div>
+                        <div class="score-label">points</div>
+                    </div>
+                    <div class="progress-bar" style="margin:0 0 0.5rem;">
+                        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);" id="progressText">0/50 points daily goal
+                    </div>
+                </div>
+
+                <!-- ARIA Interactive Chat -->
+                <div class="aria-chat-card">
+                    <div class="aria-chat-header">
+                        <div class="aria-avatar-sm">🤖</div>
+                        <div class="aria-chat-info">
+                            <div class="aria-chat-name">Chat with ARIA</div>
+                            <div class="aria-chat-status">
+                                <div class="aria-status-dot"></div> Online — Ready to help
+                            </div>
+                        </div>
+                    </div>
+                    <div class="aria-messages" id="ariaMessages"></div>
+                    <div class="aria-quick-btns">
+                        <button class="quick-q-btn" onclick="sendQuick(this)">💤 Sleep tips?</button>
+                        <button class="quick-q-btn" onclick="sendQuick(this)">🏃 Best exercise?</button>
+                        <button class="quick-q-btn" onclick="sendQuick(this)">🥗 Diet advice?</button>
+                        <button class="quick-q-btn" onclick="sendQuick(this)">😰 Stress help?</button>
+                        <button class="quick-q-btn" onclick="sendQuick(this)">💊 Supplements?</button>
+                        <button class="quick-q-btn" onclick="sendQuick(this)">❤️ Heart health?</button>
+                    </div>
+                    <div class="aria-input-row">
+                        <input class="aria-input" id="ariaInput" type="text"
+                            placeholder="Ask ARIA anything about your health…"
+                            onkeydown="if(event.key==='Enter') sendMessage()" />
+                        <button class="aria-send-btn" onclick="sendMessage()" title="Send">➤</button>
+                    </div>
+                </div>
+
+                <div class="tips-card">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">💡 AI Health Tips</h3>
+                    <div class="tip-item">
+                        <div class="tip-icon">🌊</div>
+                        <div class="tip-text">Start your morning with warm lemon water — activates digestion and
+                            alkalizes the body</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🧠</div>
+                        <div class="tip-text">Your stress levels are moderate. Try the "5-4-3-2-1" grounding technique
+                            when feeling overwhelmed</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🍎</div>
+                        <div class="tip-text">Your sugar level is in normal range — maintain it by avoiding refined
+                            carbs at dinner</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">❤️</div>
+                        <div class="tip-text">Walking after meals for 15 minutes reduces post-meal glucose spikes by up
+                            to 30%</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">💪</div>
+                        <div class="tip-text">Build muscle even with 20 min/day — muscle mass increases metabolic rate
+                            by 7-10%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        /* ══════════════════════════════════════════════
+           ARIA — Advanced Health Intelligence Engine v2
+           Handles 50+ topics + smart contextual fallback
+           ══════════════════════════════════════════════ */
+
+        const ariaKB = [
+            // ── Greetings ──
+            {
+                k: ['hi ', 'hello', 'hii', 'hey ', 'namaste', 'namaskar', 'aria', 'kya hal', 'kese ho', 'kaise ho', 'sup ', 'helo'],
+                r: '👋 Namaste! Main ARIA hoon — aapki AI Health Coach. Diet, exercise, neend, stress, cancer, thyroid, BP, cholesterol ya kisi bhi health topic par poochhein. Main hamesha jawab dunga. Kya jaanna chahte hain? 😊'
+            },
+
+            // ── Thank you ──
+            {
+                k: ['thanks', 'thank', 'shukriya', 'dhanyavad', 'shukriyaa', 'helpful', 'bahut accha', 'bohot accha', 'great ans', 'acha jawab'],
+                r: '😊 Khushi hui help karke! Consistency hi key hai — ek chota change aaj karein, kal aur asaan ho jayega. Kuch aur poochhna ho to main yahaan hoon. 💪'
+            },
+
+            // ── Sleep ──
+            {
+                k: ['sleep', 'neend', 'sona', 'insomnia', 'soona', 'raat ko', 'jagta', 'uthna', 'so nahi', 'nind nahi', 'sleepless'],
+                r: '😴 Sleep Tips: Roz 7-8 ghante zaroori hai. Fixed bedtime — 10:30 PM sona, 6:30 AM uthna. Sone se 1 hr pehle screens off karein. Kamra dark aur thanda (18-20°C) rakhen. 4-7-8 breathing: 4 sec inhale → 7 sec hold → 8 sec exhale. Chamomile tea bhi helpful hai. Isse sleep quality 40% improve hoti hai!'
+            },
+
+            // ── Exercise ──
+            {
+                k: ['exercise', 'workout', 'gym', 'vyayam', 'jogging', 'running', 'cardio', 'lifting', 'squat', 'pushup', 'plank', 'yoga', 'pilates', 'hiit', 'zumba', 'cycling', 'swimming', 'aerobic'],
+                r: '🏃 Exercise Plan: Din mein 30 min brisk walk se heart disease 35% aur diabetes 40% kam hata hai. Mon/Wed/Fri — cardio 30 min, Tue/Thu — yoga/strength 20 min, Sat — sport 1 hr, Sun — nature walk. HIIT (High Intensity) best fat burner hai — 20 min mein 300+ kcal burn! Slowly intensity badhayen.'
+            },
+
+            // ── Diet / Nutrition ──
+            {
+                k: ['diet', 'khana', 'khaana', 'food', 'meal', 'breakfast', 'lunch', 'dinner', 'bhojan', 'nutrition', 'nutrients', 'calorie', 'calories', 'macros', 'fiber', 'protein', 'carbs', 'carbohydrate'],
+                r: '🥗 Diet Guide: Subah — oats + kela + badam (320 kcal). Lunch — brown rice + dal + sabzi + dahi (450 kcal). Dinner — light soup ya grilled protein. 2.5L paani daily. Avoid: sugary drinks, fried food, excess namak, maida. Khaane ke baad 15 min walk zaroor karein — post-meal glucose 30% kam hota hai!'
+            },
+
+            // ── Stress & Anxiety ──
+            {
+                k: ['stress', 'tension', 'anxiety', 'chinta', 'pareshaan', 'pressure', 'tnaav', 'ghabrahat', 'nervousness', 'panic', 'overthinking', 'mental', 'depressed', 'depression', 'sad ', 'dukhi', 'udaas'],
+                r: '🧘 Stress & Mental Health: Rozana 10 min meditation cortisol 26% kam karta hai. "5-4-3-2-1" grounding try karein. Deep breathing (box breathing): 4 sec in, 4 hold, 4 out, 4 hold. Journaling, nature walk, social connections bhi powerful tools hain. Agar 2+ weeks depression ho to professional help zaroor lein — yeh weakness nahi, strength hai.'
+            },
+
+            // ── Water / Hydration ──
+            {
+                k: ['water', 'paani', 'hydration', 'dehydration', 'pyas', 'thirst', 'dry mouth', 'dry lips', 'urine', 'peshab ka rang'],
+                r: '💧 Hydration: Target 2.5-3L daily. Subah uthte hi 500ml warm paani — metabolism 30% boost karta hai. Dark yellow urine = dehydration sign. Coconut water electrolytes ke liye best hai. Avoid: cold drinks, packaged juice, energy drinks. Fruits (cucumber, watermelon) bhi hydration mein help karte hain.'
+            },
+
+            // ── Energy / Fatigue ──
+            {
+                k: ['energy', 'thakaan', 'thakan', 'tired', 'fatigue', 'kamzor', 'weakness', 'laziness', 'aalas', 'bore', 'sluggish', 'lethargic'],
+                r: '⚡ Energy Boost: Main causes — poor sleep, dehydration, iron/B12 deficiency, low vitamin D. Solutions: 7-8 hrs neend, 2.5L paani, protein breakfast (eggs/paneer), 10 min morning sunlight. Avoid caffeine after 3 PM. Iron ke liye: palak, rajma, dates. B12 ke liye: dahi, chhach, eggs. Blood test zaroor karwayen!'
+            },
+
+            // ── Heart / BP / Hypertension ──
+            {
+                k: ['heart', 'dil', 'cardiovascular', 'bp', 'blood pressure', 'hypertension', 'cholesterol', 'triglyceride', 'hdl', 'ldl', 'angina', 'chest pain', 'seene mein dard', 'palpitation', 'heart rate', 'pulse'],
+                r: '❤️ Heart Health: Rozana 30 min walk + low sodium diet (5g/day max) + quit smoking = heart risk 40% kam. Cholesterol ke liye: oats, flaxseed, olive oil, green tea. BP normal: 120/80 — 140+ hone par doctor se milein. Omega-3 (machli, akhrot) LDL kam karta hai. Paan masala, gutkha strictly avoid karein.'
+            },
+
+            // ── Diabetes / Blood Sugar ──
+            {
+                k: ['diabetes', 'sugar', 'blood sugar', 'shakar', 'glucose', 'insulin', 'hba1c', 'type 1', 'type 2', 'prediabetes', 'fasting sugar', 'pp sugar', 'glycemic', 'metformin'],
+                r: '🩸 Diabetes Management: Khaane ke baad 15 min walk — glucose 30% kam. HbA1c target: <7% (diabetic), <5.7% (normal). Avoid: white rice, maida, sweetened drinks. Prefer: oats, brown rice, daliya, bitter gourd (karela), fenugreek (methi). Stress aur poor sleep bhi blood sugar badhata hai. Monthly checkups zaroor.'
+            },
+
+            // ── Weight / Obesity ──
+            {
+                k: ['weight', 'mota', 'patla', 'bmi', 'fat', 'obese', 'obesity', 'slim', 'tummy', 'belly fat', 'pet', 'waist', 'weight gain', 'weight loss', 'overweight', 'underweight'],
+                r: '⚖️ Weight: Crash diet kabhi nahi — 0.5-1 kg/week safe goal. Daily 300-500 kcal deficit. Protein badhayen (eggs, paneer, dal, chhach) — satiety 40% badhta hai. Belly fat ke liye: HIIT, plank, reduce stress (cortisol belly fat badhata hai), aur 7-8 hrs neend. Avoid: late night eating, alcohol, refined sugar.'
+            },
+
+            // ── Supplements / Vitamins ──
+            {
+                k: ['supplement', 'vitamin', 'tablet', 'capsule', 'dawai', 'dawa', 'multivitamin', 'zinc', 'iron', 'calcium', 'magnesium', 'omega', 'fish oil', 'protein powder', 'whey'],
+                r: '💊 Supplements (Indian context): Vitamin D3 — agar dhoop nahi milti (2000 IU). B12 — vegetarians ke liye must. Iron — women aur anemia patients ke liye. Omega-3 — heart aur brain ke liye. Calcium + K2 — bones ke liye. Protein powder — agar diet se pura na ho. But pehle blood test karwayen, phir doctor se confirm karein.'
+            },
+
+            // ── Immunity / Infections ──
+            {
+                k: ['immunity', 'immune', 'infection', 'bukhar', 'fever', 'cold', 'flu', 'cough', 'khansi', 'sardi', 'zukam', 'viral', 'bacteria', 'weak immunity', 'chamdi', 'allergy', 'allergic'],
+                r: '🛡️ Immunity Boost: Vitamin C (amla, lemon, guava) rozana lein. Zinc (seeds, nuts) + Vitamin D + sleep = immune powerhouse. Turmeric (haldi) milk raat ko. Tulsi, ginger, black pepper tea kaafi effective hai. Roz 30 min walk immunity 35% tak badhayi sakti hai. Processed food aur excess sugar immunity ko kamzor karte hain.'
+            },
+
+            // ── Thyroid ──
+            {
+                k: ['thyroid', 'hypothyroid', 'hyperthyroid', 'tsh', 't3', 't4', 'thyroxine', 'thyroid gland'],
+                r: '🦋 Thyroid Health: Hypothyroid (low thyroid) ke symptoms: thakaan, weight gain, hair fall, constipation. Hyperthyroid: weight loss, rapid heartbeat, anxiety. TSH test normal range: 0.4-4.0 mIU/L. Selenium (Brazil nuts), Iodine (salt, fish), Zinc (seeds) helpful hain. Soy aur raw cruciferous vegetables excess mein avoid karein. Doctor se TSH test zaroor karwayen.'
+            },
+
+            // ── Liver ──
+            {
+                k: ['liver', 'fatty liver', 'jaundice', 'jaundis', 'hepatitis', 'bilirubin', 'sgot', 'sgpt', 'alt', 'ast', 'cirrhosis'],
+                r: '🫀 Liver Health: Fatty liver ke liye — alcohol completely avoid karein. Weight kam karein — 5-10% weight loss se fatty liver 40% improve hoti hai. Avoid: oily food, packaged snacks. Helpful: green vegetables, garlic, turmeric, green tea, coffee (in moderation). Roz pani 3L. LFT test baar baar karwayen. No self-medication — paracetamol bhi excess mein harmful hai.'
+            },
+
+            // ── Kidney ──
+            {
+                k: ['kidney', 'gurdaa', 'creatinine', 'uric acid', 'ckd', 'renal', 'nephritis', 'dialysis', 'kidney stone', 'pathri', 'proteinuria'],
+                r: '🫘 Kidney Health: Roz 2.5-3L paani — kidney stones aur UTI prevent karta hai. Low sodium diet (6g/day max). Avoid: excess protein, NSAIDs (ibuprofen), energy drinks. Creatinine normal: 0.6-1.2 mg/dL. Kidney stone ke liye: lemon paani, oxalate-rich food (spinach, nuts) moderate karein. Uric acid high ho to: red meat, alcohol avoid karein.'
+            },
+
+            // ── Lungs / Breathing ──
+            {
+                k: ['lungs', 'lung', 'breathing', 'saans', 'asthma', 'bronchitis', 'copd', 'respiratory', 'phephde', 'tbc', 'tb', 'tuberculosis', 'pneumonia', 'oxygen', 'inhaler', 'wheezing'],
+                r: '🫁 Lung Health: Smoking/vaping strictly avoid. Roz deep breathing exercises — pranayam (anulom-vilom, bhastrika) lungs capacity badhayi hain. Air pollution wale din N95 mask pehno. Asthma mein: trigger identify karein (dust, cold air, pets). Vitamin C + D immunity support karta hai. Indoor plants (aloe vera, spider plant) air purify karte hain.'
+            },
+
+            // ── Bone / Joint / Arthritis ──
+            {
+                k: ['bone', 'haddi', 'joint', 'jod', 'arthritis', 'osteoporosis', 'calcium', 'fracture', 'ghutna', 'knee', 'back pain', 'kamar dard', 'jodon mein dard', 'gout', 'rheumatoid'],
+                r: '🦴 Bone & Joint Health: Calcium (dahi, doodh, ragi, sesame) + Vitamin D3 (dhoop 20 min daily) = strong bones. Arthritis ke liye: low-impact exercise — swimming, cycling, yoga. Anti-inflammatory: turmeric + black pepper, fish oil, cherries. Avoid: processed food, alcohol, smoking — bone density kharab karte hain. Weight control bhi knee joints ke liye bahut zaroori hai.'
+            },
+
+            // ── Digestion / Gut ──
+            {
+                k: ['digestion', 'pet dard', 'stomach', 'pait', 'constipation', 'kabziyat', 'diarrhea', 'loose motion', 'acidity', 'gas', 'bloating', 'ibs', 'cramps', 'nausea', 'ulti', 'vomiting', 'gastric', 'gerd', 'acid reflux'],
+                r: '🫄 Gut Health: Probiotic foods (dahi, kefir, kanji) gut bacteria badhayte hain. Fiber (sabzi, fruits, whole grains) digestion smooth rakhta hai. Acidity ke liye: cold milk, banana, almonds. Avoid: spicy food, oily food, alcohol, caffeine excess. 2.5L paani daily. Khaane ke turant baad na soyen — 2-3 hrs gap rakhein. IBS mein: stress management bhi bohot zaroori hai.'
+            },
+
+            // ── Skin ──
+            {
+                k: ['skin', 'chamdi', 'acne', 'pimple', 'darshan', 'rash', 'eczema', 'psoriasis', 'dry skin', 'oily skin', 'face', 'facial', 'glow', 'glowing', 'sunburn', 'tan', 'dark spot', 'pigmentation', 'wrinkle'],
+                r: '✨ Skin Health: 2.5L paani daily = natural glow. Vitamin C (amla, lemon) = collagen boost. Acne ke liye: less sugar, less dairy, less stress. Sunscreen SPF 30+ roz — Indian sun harsh hai. Moisturizer (aloe vera gel free!) daily use karein. Sabzi + fruits antioxidants dete hain. Zyada facewash avoid karein — skin ka natural oil badhta hai. 7-8 hrs neend = skin repair time.'
+            },
+
+            // ── Hair ──
+            {
+                k: ['hair', 'baal', 'hair fall', 'hair loss', 'baal jharna', 'baldness', 'dandruff', 'scalp', 'alopecia', 'hair growth', 'thinning hair', 'bale'],
+                r: '💇 Hair Health: Iron + B12 + Zinc + Biotin deficiency = hair fall. Blood test zaroor karwayen. Diet: eggs, dahi, spinach, nuts, seeds. Onion juice (20 min) scalp pe lagana circulation badhata hai. Stress aur thyroid bhi hair fall ka bada reason hai. Hot water se head wash avoid karein. Oil massage (coconut/castor) weekly ek baar karein. Harsh shampoos avoid karein.'
+            },
+
+            // ── Eye Health ──
+            {
+                k: ['eye', 'aankhein', 'aankh', 'vision', 'eyesight', 'screen time', 'dry eyes', 'spectacles', 'glasses', 'cataract', 'glaucoma', 'retina', 'blindness'],
+                r: '👁️ Eye Health: 20-20-20 rule follow karein — har 20 min mein 20 sec ke liye 20 ft door dekho. Carrot, green leafy vegetables (lutein), eggs (zeaxanthin) aankhon ke liye best hain. Screen brightness zoom zoom se adjust karein. Dark room mein mobile avoid karein. Vitamin A deficiency = night blindness. Roz 6+ hrs neend aankhon ke liye must hai.'
+            },
+
+            // ── Mental Health / Depression ──
+            {
+                k: ['mental health', 'depression', 'depressed', 'mood', 'lonely', 'loneliness', 'suicidal', 'self harm', 'sadness', 'bipolar', 'ocd', 'ptsd', 'phobia', 'panic attack'],
+                r: '🧠 Mental Health: Aap akele nahi hain. Baat karna sabse zaroori hai — kisi trusted person se ya professional se. Exercise (even 20 min walk) serotonin badhata hai. Sunlight, social connection, meaningful activities bhi help karte hain. India mein iCare helpline: 9152987821. Vandrevala Foundation: 1860-2662-345 (24/7 free). Professional help lena strength hai, weakness nahi.'
+            },
+
+            // ── Cancer ──
+            {
+                k: ['cancer', 'tumor', 'tumour', 'carcinoma', 'malignant', 'chemotherapy', 'chemo', 'radiation', 'biopsy', 'oncology', 'breast cancer', 'cervical', 'prostate', 'colon', 'lung cancer'],
+                r: '🎗️ Cancer Awareness: Early detection = highest cure rate. Warning signs: unexplained weight loss, persistent cough, lump, blood in urine/stool, unusual bleeding. Prevention: quit smoking, healthy BMI, limit alcohol, exercise regularly, eat more vegetables. Screen karwayen: mammogram (women 40+), Pap smear (women 21+), colonoscopy (45+). Aaj ki zindagi kal ki sehat hai.'
+            },
+
+            // ── Cholesterol ──
+            {
+                k: ['cholesterol', 'lipid', 'triglyceride', 'hdl', 'ldl', 'vldl', 'fatty', 'lipid profile'],
+                r: '🫀 Cholesterol Control: LDL target <100 mg/dL (heart patients ke liye <70). HDL >40 (men), >50 (women) good. Foods to eat: oats (beta-glucan), akhrot, olive oil, fatty fish, flaxseed. Avoid: trans fat, fried food, excess ghee. Roz 30 min exercise HDL badhata hai aur LDL ghata ta hai. Smoking HDL ko bahut nuksaan pahunchata hai.'
+            },
+
+            // ── PCOS / PCOD ──
+            {
+                k: ['pcos', 'pcod', 'polycystic', 'ovary', 'period', 'periods', 'menstrual', 'irregular period', 'dysmenorrhea', 'cramps mein dard', 'hormones', 'estrogen', 'progesterone'],
+                r: '🌸 PCOS/Hormonal Health: PCOS ke liye low-carb diet bahut effective hai. Inositol (myo-inositol) supplement research-backed hai doctor se poochhein. Exercise: strength training + yoga. Weight 5-10% kam karna bhi PCOS improve karta hai. Stress management must hai — cortisol hormones disturb karta hai. Irregular periods ke liye zaroor gynecologist se milein.'
+            },
+
+            // ── Sexual / Reproductive Health ──
+            {
+                k: ['sexual health', 'libido', 'erectile', 'infertility', 'sperm', 'testosterone', 'family planning', 'contraception', 'pregnancy', 'conceive', 'fertility'],
+                r: '🔒 Reproductive Health: Libido aur fertility dono ke liye: healthy weight, exercise, zinc (seeds, nuts), ashwagandha (doctor ke sath). Stress aur poor sleep testosterone significantly kam karte hain. Alcohol aur smoking fertility dono mein nuksaan karte hain. Sensitive topic hai — doctor se frank baat karein, woh judgemental nahi hote. Privacy aur health dono zaroori hain.'
+            },
+
+            // ── Headache / Migraine ──
+            {
+                k: ['headache', 'sir dard', 'sar dard', 'migraine', 'head pain', 'tension headache', 'cluster headache'],
+                r: '🤕 Headache & Migraine: Causes: dehydration, screen time, sleep deprivation, stress, skipping meals. Immediate relief: 2 glass paani piyen, dark quiet room mein rest karein, cold/warm compress. Migraine triggers: bright light, strong smell, caffeine withdrawal, hormonal changes. Magnesium supplement migraines reduce karta hai (doctor se). Agar 3x/week ya haath numbness ho — doctor se milein.'
+            },
+
+            // ── Back Pain ──
+            {
+                k: ['back pain', 'kamar dard', 'kamar', 'spine', 'disc', 'sciatica', 'posture', 'sitting', 'desk job', 'neck pain', 'cervical', 'spondylitis'],
+                r: '🦴 Back & Spine: Poor posture sabse bada cause hai. Har 30-45 min pe uthkar 2-3 min walk karein. Chair height: ankles, knees, hips 90° hone chahiyen. Core strengthening exercises (plank, bridge) spine support karte hain. Hot compress ya ice pack (acute) pain mein help karta hai. Avoid: heavy lifting without proper form. Severe/radiating pain mein physiotherapist zaroor dekhein.'
+            },
+
+            // ── Anemia / Iron ──
+            {
+                k: ['anemia', 'anaemia', 'iron', 'haemoglobin', 'hemoglobin', 'hb', 'blood count', 'rbc', 'pale', 'paleness', 'chakkar'],
+                r: '🩸 Anemia & Iron: Hb normal: women 12+, men 13+ g/dL. Iron-rich foods: palak, rajma, lentils, dates, pomegranate, liver. Vitamin C ke sath iron absorb zyada hota hai (lemon + dal ek saath). Avoid: tea/coffee khaane ke baad turant (iron absorption 60% kam karta hai). B12 deficiency anemia bhi common hai — eggs, dahi, paneer zaroor khayen. CBC test karwayen.'
+            },
+
+            // ── Uric Acid / Gout ──
+            {
+                k: ['uric acid', 'gout', 'purine', 'joint swelling', 'toe pain', 'joint inflammatory', 'uric'],
+                r: '🦴 Uric Acid Control: Normal <6.0 mg/dL (women), <7.0 (men). High uric acid mein avoid: red meat, seafood, beer, fructose drinks. Helpful: cherries (tart), vitamin C, low-fat dairy, lots of water (3+ L). Roz alkaline foods: cucumber, lemon (despite acidic taste, alkalizing effect). Regular exercise aur healthy weight maintenance bhi zaroori hai.'
+            },
+
+            // ── Immunity Boosters ──
+            {
+                k: ['immunity boost', 'immune system', 'badhaye', 'strong karna', 'natural immunity', 'immunity weak'],
+                r: '🛡️ Immunity Powerhouse: Vitamin C (amla #1 source in India — vitamin C orange se 20x zyada!), Zinc (seeds, nuts), Vitamin D3 (sunlight 20 min), Selenium (2 Brazil nuts daily). Anti-inflammatory spices: haldi, adrak, kali mirch. Gut health = 70% immunity — probiotic foods daily. Sleep 7-8 hrs — immune cells repair time hai. Stress kam karo — cortisol immune ko suppress karta hai.'
+            },
+
+            // ── Smoking / Alcohol ──
+            {
+                k: ['smoking', 'cigarette', 'bidi', 'tobacco', 'gutka', 'paan masala', 'alcohol', 'sharaab', 'daru', 'drinking', 'drugs', 'addiction'],
+                r: '🚭 Addiction & Quitting: Quitting smoking = best single health decision. 20 min mein BP normalize, 24 hrs mein CO clear, 1 year mein heart risk 50% kam! NRT (nicotine patches, gum) + doctor support best method hai. Alcohol: max 1 drink/day women, 2 men — isse zyada liver, brain, cancer risk serious. iCall helpline: 9152987821. Courage chahiye — aap kar sakte hain!'
+            },
+
+            // ── Vitamin D ──
+            {
+                k: ['vitamin d', 'dhoop', 'sunlight', 'sunshine', 'vitamin d deficiency', 'rickets', 'bone weakness'],
+                r: '☀️ Vitamin D: India mein 80%+ logon mein deficiency! Symptoms: bone pain, weakness, fatigue, hair fall, low immunity. 20 min morning sunlight (8-10 AM, arms + legs exposed). Natural sources: fatty fish, egg yolk, mushrooms. Supplement: D3 (not D2) 1000-2000 IU daily after food. Blood test: 25-OH Vitamin D — target 40-60 ng/mL.'
+            },
+
+            // ── Protein ──
+            {
+                k: ['protein', 'amino acid', 'muscle', 'muscles', 'whey', 'casein', 'plant protein', 'protein deficiency', 'protein intake'],
+                r: '💪 Protein Guide: Daily requirement: 0.8-1g per kg body weight (athletes: 1.2-1.6g). Best Indian sources: dal (7g/100g), paneer (18g), egg (6g each), chhach, dahi, soya chunks (52g — highest!). Animal: chicken, fish, eggs — complete amino acids. Plant: combine dal + rice = complete protein. Supplement sirf tab lein jab diet se na ho.'
+            },
+
+            // ── Green Tea / Coffee ──
+            {
+                k: ['green tea', 'black tea', 'chai', 'coffee', 'caffeine', 'tea', 'herbal tea'],
+                r: '🍵 Healthy Beverages: Green tea (2-3 cups/day) — antioxidants, metabolism boost, heart health. Black coffee (1-2 cups, no sugar) — improves focus, burns fat. Avoid: 3 PM ke baad caffeine — sleep disturb karta hai. Chai mein kam sugar ya no sugar. Herbal teas (tulsi, ginger, peppermint) great alternatives hain. Packaged tetra-pak juices = sugar bombs, avoid.'
+            },
+
+            // ── Gut Microbiome ──
+            {
+                k: ['gut health', 'gut bacteria', 'microbiome', 'probiotic', 'prebiotic', 'fermented', 'dahi', 'kanji', 'kimchi', 'kefir', 'gut flora'],
+                r: '🦠 Gut Microbiome: 70% immunity gut mein hoti hai! Probiotic foods roz khayen: dahi, chhach, kanji, idli, dosa, pickle (in moderation). Prebiotic (gut bacteria ka khaana): onion, garlic, banana, oats. Antibiotics ke baad gut flora recover karna zaroori hai — probiotic supplement lein. Less processed food, less sugar = happy gut. Gut-brain connection real hai — good gut = better mood!'
+            },
+
+            // ── Bone Density ──
+            {
+                k: ['bone density', 'osteoporosis', 'calcium deficiency', 'bone test', 'dexa scan', 'weak bones'],
+                r: '🦴 Bone Density: 30 se pehle bones banaye, baad mein sirf maintain. Calcium (yogurt, ragi, sesame seeds) + Vitamin D3 + K2 = dream team. Weight-bearing exercise (walking, dancing, strength training) best for bone density. Avoid: smoking, alcohol, excess caffeine, sodas — calcium leach karte hain. DEXA scan 50+ ya risk group mein zaroor karwayen.'
+            },
+
+            // ── Intermittent Fasting ──
+            {
+                k: ['fasting', 'intermittent fasting', 'if', '16:8', 'roza', 'vrat', 'fast', 'khaana mat khana', 'skip meal'],
+                r: '⏰ Intermittent Fasting: 16:8 method (16 hrs fast, 8 hrs eating window) is most popular. Benefits: weight loss, insulin sensitivity, autophagy (cell repair). During fasting: paani, black coffee, green tea allowed. Break fast with protein + veggies, not heavy carbs. Diabetics aur pregnant women ke liye doctor se pehle poochhein. Crash dieting se alag hai — safe aur sustainable hai.'
+            },
+
+            // ── Immunity + Foods ──
+            {
+                k: ['amla', 'turmeric', 'ginger', 'garlic', 'haldi', 'adrak', 'lehsun', 'ashwagandha', 'moringa', 'neem', 'giloy', 'triphala', 'ayurvedic'],
+                r: '🌿 Superfoods & Ayurveda: Amla — Vitamin C ka powerhouse (20x orange!). Haldi (turmeric) + kali mirch = curcumin absorption 2000% badhti hai. Adrak — anti-inflammatory, digestion. Lehsun — heart, immunity, antibacterial. Ashwagandha — stress, testosterone, energy (doctor se dose confirm karein). Giloy — immunity, diabetes. Moringa — iron, calcium, protein. These are powerful but not replacements for medical treatment.'
+            },
+
+            // ── Posture & Desk Job ──
+            {
+                k: ['posture', 'desk job', 'sitting', 'office', 'computer', 'laptop', 'sedentary', 'screen', 'wfh', 'work from home', 'ergonomic'],
+                r: '💺 Desk Job Health: Pomodoro technique — 25 min kaam, 5 min break (uthkar move karein). Screen: eye level par rakhein. Chair: 90-90-90 rule (ankles, knees, hips). Standing desk try karein if possible. Shoulder rolls, neck stretches har ghante karein. After work: 20-30 min walk must. "Sitting is the new smoking" — 8+ hrs sitting se diabetes, heart risk 40% badhta hai.'
+            },
+
+            // ── Meditation / Mindfulness ──
+            {
+                k: ['meditation', 'mindfulness', 'dhyan', 'pranayam', 'breathing exercise', 'box breathing', '4-7-8', 'deep breath'],
+                r: '🧘 Meditation & Breathing: Roz sirf 10 min meditation: cortisol 26%, blood pressure 10%, anxiety 39% reduce hoti hai. Beginner ke liye: headspace, calm, or YouTube "guided meditation Hindi" try karein. Pranayam: anulom-vilom (5 min) = best natural anxiety relief. Box breathing: 4 in → 4 hold → 4 out → 4 hold. Mindfulness = present mein rehna = life quality up.'
+            },
+
+            // ── Social / Loneliness ──
+            {
+                k: ['lonely', 'akela', 'loneliness', 'social', 'friends', 'friendship', 'relationship', 'family', 'isolation', 'boredom'],
+                r: '🤝 Social Health & Wellbeing: Strong social connections all-cause mortality 50% reduce karti hain! Loneliness chronic disease jitna harmful hota hai. Solution: daily meaningful conversation (even 10 min), join a group/class, volunteer, online communities. Quality matters over quantity — 2-3 deep friendships > 100 superficial contacts. Agar severe loneliness ho — therapist se milein.'
+            },
+
+            // ── Skin Glow ──
+            {
+                k: ['glow', 'glowing skin', 'skin care', 'skincare', 'moisturizer', 'sunscreen', 'face wash', 'serum', 'retinol', 'collagen'],
+                r: '✨ Skin Glow Routine: AM: gentle cleanser → Vitamin C serum → moisturizer → SPF 30+. PM: cleanser → retinol (start slow, 2x/week) → heavier moisturizer. Diet: 2.5L water, Vitamin C foods (amla, citrus), zinc, omega-3. Inside-out: sleep 8 hrs (skin repairs at night), manage stress (breaks out skin), avoid smoking. Expensive products se pehle basics fix karein.'
+            },
+
+            // ── Pregnancy ──
+            {
+                k: ['pregnancy', 'pregnant', 'garbh', 'delivery', 'baby', 'maternity', 'prenatal', 'postnatal', 'breastfeeding', 'lactation', 'folic acid'],
+                r: '🤰 Pregnancy Health: Folic acid (400mcg) conception se pehle aur pehli trimester mein — neural tube defects prevent karta hai. Iron, Calcium, D3 supplements must. Avoid: raw fish, unpasteurized dairy, alcohol, caffeine 200mg+, raw sprouts. Light exercise (walking, prenatal yoga) safe until advised otherwise. Nausea ke liye: ginger tea, small frequent meals. Regular checkups must.'
+            },
+
+            // ── Children's Health ──
+            {
+                k: ['child', 'bachcha', 'baby', 'kids', 'toddler', 'infant', 'school age', 'teen', 'adolescent', 'children health', 'bacha'],
+                r: '👶 Children\'s Health: Roz outdoor play 1 hr minimum — Vitamin D, bone health, immunity, social skills. Screen time: under 2 years = almost zero, 2-5 years = 1 hr/day, 6+ = 2 hrs max. Fruits, veggies, milk, dal = complete nutrition. Breakfast skip mat karein — school performance directly linked. Proper sleep: toddlers 11-14 hrs, school age 9-12 hrs. Love aur emotional security bhi health hai.'
+            },
+
+            // ── Men's Health ──
+            {
+                k: ['testosterone', 'men health', 'prostate', 'testicular', 'male health', 'manhood', 'erection'],
+                r: '💪 Men\'s Health: Testosterone naturally badhane ke liye: strength training, 7-8 hrs neend, zinc (seeds, oysters), Vitamin D, manage obesity. Prostate health: lycopene (tamatar), zinc, saw palmetto. PSA test 50 ke baad (ya 40 agar family history ho). Avoid: excess alcohol, smoking, chronic stress — sab testosterone kam karte hain. Annual health checkup mein forget mat karein.'
+            },
+
+            // ── Aging / Anti-aging ──
+            {
+                k: ['aging', 'age', 'bujhurga', 'anti aging', 'old age', 'wrinkle', 'longevity', 'lifespan', 'healthy aging', 'senior'],
+                r: '🕰️ Healthy Aging: Biological age chronological age se different hota hai — aap control kar sakte hain. Blue zone secrets: plant-based diet, purpose (ikigai), movement throughout day, strong community, stress management. Antioxidants (berries, dark chocolate 70%+, green tea) aging slow karte hain. Calorie restriction + intermittent fasting = longevity research-backed hai. Keep learning — brain bhi muscle hai.'
+            },
+
+            // ── Home Remedies ──
+            {
+                k: ['gharelu nuskhe', 'home remedy', 'natural remedy', 'desi nuskha', 'dadi maa', 'ghar ka ilaaj', 'natural cure'],
+                r: '🌿 Proven Home Remedies: Cold/cough — ginger+honey+tulsi tea. Acidity — cold milk ya banana. Headache — paani piyo + dark room + peppermint oil temple pe. Sore throat — warm salt water gargle. Constipation — warm water + lemon + fiber. Cut/wound — clean water → antiseptic → clean bandage. Inka use mild problems mein karein. Serious symptoms mein delay mat karein — doctor se milein.'
+            },
+
+            // ── Medical Tests ──
+            {
+                k: ['blood test', 'test', 'checkup', 'annual checkup', 'health checkup', 'cbc', 'lft', 'kft', 'thyroid test', 'lipid profile', 'ecg', 'echo', 'scan', 'mri', 'ct scan', 'x-ray'],
+                r: '🔬 Health Tests Schedule: Annual must-haves (30+): CBC, Fasting blood sugar + HbA1c, Lipid profile, LFT, KFT, TSH, Vitamin D3, B12, blood pressure check. 40+ add: ECG, chest X-ray, eye exam. Women: Pap smear, mammogram (40+), bone density (50+). Men: PSA (50+). Don\'t wait for symptoms — preventive screening saves lives. Aaj buk karein!'
+            },
+
+            // ── Quit Smoking ──
+            {
+                k: ['quit smoking', 'smoking chhodo', 'cigarette chhorna', 'tobacco quit', 'nicotine withdrawal', 'chewing tobacco'],
+                r: '🚭 Quit Smoking Plan: Within 20 min: BP normalizes. 24 hrs: CO clears. 1 year: heart risk halved! Strategy: set a quit date, tell people, remove triggers, NRT (patch/gum/lozenge), medication (varenicline — very effective, doctor se). Withdrawal symptoms (irritability, craving) peak at 72 hrs. Cravings last only 3-5 min — ride it out! iCall: 9152987821 support ke liye.'
+            },
+
+            // ── Period Pain ──
+            {
+                k: ['period pain', 'period cramps', 'dysmenorrhea', 'menstrual pain', 'menstural', 'heavy period', 'irregular'],
+                r: '🌸 Period Health: Mild cramps: warm compress, light exercise (yoga), ibuprofen/naproxen. Severe cramps: may indicate endometriosis — gynecologist se milein. Iron-rich diet periods ke around important hai (palak, pomegranate). Irregular periods check: thyroid, PCOS, stress, body weight. Track your cycle — pattern mein irregularity notice karein. Vitamin B6 + magnesium cramps reduce karte hain.'
+            },
+
+            // ── Ear Health ──
+            {
+                k: ['ear', 'kaan', 'hearing', 'tinnitus', 'ear infection', 'earwax', 'vertigo'],
+                r: '👂 Ear Health: Earwax safe removal: 2-3 drops warm olive/mineral oil → tilt head → drain. Cotton buds avoid karein — ear canal push karte hain (barber ki tarah). Tinnitus (ringing) causes: loud noise, stress, BP. Solutions: protect ears from loud sound (earplugs concerts mein), manage BP + stress. Vertigo ke liye: Epley maneuver helpful hai. Hearing loss? ENT se zaroor milein.'
+            },
+
+            // ── Flu vaccine / Preventive ──
+            {
+                k: ['vaccine', 'vaccination', 'flu shot', 'immunization', 'covid', 'booster', 'prevention'],
+                r: '💉 Vaccines & Prevention: Adults ke liye important vaccines: Flu (annually), COVID (booster as recommended), Hepatitis B (if not vaccinated), Typhoid (every 3 yrs), TT (injury ke baad). Travel mein: Hepatitis A, Yellow Fever (Africa/Latin America). Vaccines ek baar lene se khatam nahi — schedule check karein. Prevention > treatment — always.'
+            },
+
+            // ── Healthy Lifestyle Habits ──
+            {
+                k: ['healthy habits', 'lifestyle', 'routine', 'daily routine', 'morning routine', 'healthy life', 'wellness', 'wellbeing'],
+                r: '🌟 Power Daily Routine: Morning: 6:30 AM — wake up, 500ml water, 10 min sunlight, stretching/walk. Breakfast 8 AM. Work with breaks (43-min focus + 17-min rest is ideal). Lunch: 1 PM balanced meal. 5 PM: no more caffeine. Evening: exercise 30 min, social time. Dinner by 8 PM. 9 PM: dim lights, screen off. 10:30 PM: sleep. This simple routine transforms health in 30 days.'
+            },
+        ];
+
+        // ── Symptom patterns → topic mapping ──
+        const symptomMap = [
+            {
+                syms: ['chakkar', 'dizzy', 'dizziness', 'giddy'],
+                r: '😵 Chakkar (Dizziness): Common causes: dehydration (pehle 2 glass paani piyen), BP low/high, anemia, inner ear issue, blood sugar drop. Immediate: baith jayein ya let jayein. Frequently repeat hone par — CBC, BP, blood sugar check karwayen. Agar achanak severe dizziness + numbness + speech problem ho — STROKE emergency! Ambulance bulayein.'
+            },
+            {
+                syms: ['pain', 'dard', 'ache', 'hurt', 'burning', 'jalan', 'soreness'],
+                r: '🤕 Pain Alert: Chest pain + breathlessness = emergency (ambulance bulayein). Abdominal pain + fever = doctor same day. Muscle pain: warm compress, stretch, rest, ibuprofen. Nerve pain (shooting/electric): neurologist se milein. Chronic pain (3+ months): pain specialist se. Pain body ka warning signal hai — ignore mat karein.'
+            },
+            {
+                syms: ['fever', 'bukhar', 'temperature', 'high temp', 'chills', 'theeth kapna'],
+                r: '🌡️ Fever Management: 99-101°F: rest, 2-3L fluids, paracetamol. 101-103°F: paracetamol + doctor consult. 103°F+: same day doctor/ER. Children mein 102°F+ immediately doctor. Dengue ke liye: platelet count check. Typhoid ke liye: Widal test. 3+ days fever without cause = blood culture, CBC. Cold sponging (not ice) for high temps.'
+            },
+            {
+                syms: ['nausea', 'ulti', 'vomit', 'queasy', 'sick feeling'],
+                r: '🤢 Nausea Relief: Ginger (adrak) tea ya ginger biscuit — clinically proven anti-nausea. Small sips of paani/ORS dehydration prevent karta hai. Peppermint oil smell ya tea bhi helpful. BRAT diet (Banana, Rice, Applesauce, Toast) upset stomach ke baad. Red flag: blood in vomit, severe abdominal pain, dehydration signs — doctor immediately.'
+            },
+            {
+                syms: ['swelling', 'sojan', 'edema', 'puffiness', 'swollen'],
+                r: '💊 Swelling: Leg swelling: long sitting/standing se circulation problem, heart/kidney/liver issue possible. Elevate legs, reduce sodium. Face/eye swelling: allergy, kidney issues. Localized swelling/redness: infection — antibiotics needed. Sudden severe swelling + difficulty breathing = allergic reaction emergency (anaphylaxis). CBC, LFT, KFT check karwayen.'
+            },
+            {
+                syms: ['rash', 'khujli', 'itching', 'itch', 'allergy', 'allergic reaction', 'hives', 'urticaria'],
+                r: '🩹 Rash & Allergy: Identify trigger: food, medicine, fabric, detergent, pets. Immediate relief: antihistamine (cetirizine/loratadine). Cool compress itching mein help karta hai. Avoid hot shower, tight clothing. Steroid cream only on doctor advice. Severe rash + fever + joint pain = serious condition → doctor. Anaphylaxis (swelling + breathing difficulty) = EMERGENCY.'
+            },
+        ];
+
+        // ── Body part patterns → health info ──
+        const bodyMap = [
+            { parts: ['liver', 'kidney', 'gall bladder', 'pancreas', 'intestine', 'colon'], topic: 'abdominal pain + that organ — doctor se jaroor consult karein aur LFT/KFT/RFT tests karwayen.' },
+            { parts: ['lungs', 'chest', 'heart', 'aorta'], topic: 'heart ya lungs related symptoms — ECG, Echo, chest X-ray recommend karta hoon.' },
+            { parts: ['brain', 'neuro', 'nerve', 'spinal cord'], topic: 'neurological issue possible — MRI/CT aur neurologist consultation recommended.' },
+        ];
+
+        // ── Smart ARIA Brain Function ──
+        function getAriaReply(question) {
+            const q = question.toLowerCase().trim();
+
+            // 1. Direct KB match
+            for (const entry of ariaKB) {
+                if (entry.k.some(k => q.includes(k))) return entry.r;
+            }
+
+            // 2. Symptom detection
+            for (const s of symptomMap) {
+                if (s.syms.some(k => q.includes(k))) return s.r;
+            }
+
+            // 3. Body part detection
+            for (const b of bodyMap) {
+                if (b.parts.some(k => q.includes(k))) {
+                    return '🔍 Mujhe laga aap ' + b.parts.find(k => q.includes(k)) + ' ke baare mein poochhein rhe hain. ' + b.topic + '\n\n💡 Koi specific symptom ya problem batayen — main aur detailed help kar sakta hoon!';
+                }
+            }
+
+            // 4. Question intent detection
+            if (q.match(/kya khana|kya piyen|kya karun|kya khaun|kya karein|best food|best diet|acche food/)) {
+                return '🥗 Healthy khaane ke liye: Subah — oats/eggs/fruits. Lunch — dal + sabzi + brown rice + dahi. Dinner — light protein + vegetables. Daily: 2.5L paani, amla ya citrus (Vitamin C), nuts aur seeds. Avoid: refined sugar, maida, fried food, packaged snacks.\n\nKisi specific condition ke liye diet poochhein — main customize kar sakta hoon!';
+            }
+            if (q.match(/kaise thik|kaise bachein|kaise rokein|kaise rokun|prevent|treatment|ilaaj|cure|thik karna/)) {
+                return '💊 Prevention is the best cure! General preventive health:\n✅ Roz 30 min walk\n✅ 7-8 hrs neend\n✅ 2.5L paani\n✅ Balanced diet — no junk\n✅ Stress management\n✅ Annual health checkup\n\nKisi specific condition ka naam batayen — uska targeted prevention plan dunga!';
+            }
+            if (q.match(/doctor|hospital|specialist|physician|consult|refer|emergency|ambulance|urgent|serious/)) {
+                return '🏥 Doctor se milne ki advice: Agar symptoms mild hain — GP ya family doctor sufficient. Specialist ke liye: \n❤️ Heart — Cardiologist\n🧠 Neuro — Neurologist\n🫁 Lungs — Pulmonologist\n🦴 Joints — Orthopedic\n🧬 Hormones — Endocrinologist\n🧠 Mental — Psychiatrist/Psychologist\n\nEmergency mein: AIIMS/Government hospital ka ER ya 108 ambulance. Jaldi jaana important hai!';
+            }
+            if (q.match(/weight loss|wajan ghatana|slim|fit|fitness|body|lean/)) {
+                return '⚖️ Weight Loss Smart Guide:\n1️⃣ Daily 300-500 kcal deficit\n2️⃣ Protein har meal mein (eggs, paneer, dal)\n3️⃣ Exercise: 30 min cardio + 2x/week strength\n4️⃣ 2.5L paani — cravings 30% kam\n5️⃣ 7-8 hrs neend — hunger hormones balance\n6️⃣ Stress kam karo — cortisol belly fat ka culprit\n\nCrash diet avoid karein — 0.5-1 kg/week sustainable goal hai!';
+            }
+
+            // 5. Smart topic extraction from nouns
+            const healthNouns = { 'liver': 'liver health ke baare mein poochhein', 'kidney': 'kidney aur renal health', 'thyroid': 'thyroid disorder', 'cancer': 'cancer prevention', 'blood': 'blood disorders ya CBC test', 'sugar': 'blood sugar management', 'pressure': 'blood pressure management' };
+            for (const [noun, topic] of Object.entries(healthNouns)) {
+                if (q.includes(noun)) {
+                    return '🔍 Lagta hai aap ' + topic + ' se related poochhein rhe hain.\n\nMujhe thoda aur detail dein — kya symptoms hain ya kya specifically jaanna chahte hain? Main aapko accurate aur helpful advice de sakta hoon. 😊';
+                }
+            }
+
+            // 6. Smart contextual fallback — never leaves user empty-handed
+            const fallbacks = [
+                '🤖 Yeh topic meri database mein abhi expand ho raha hai! Lekin main ek smart suggestion de sakta hoon:\n\n🌟 90% health problems ke liye foundation yahi hai:\n✅ 7-8 hrs quality sleep\n✅ 30 min daily movement\n✅ Balanced meals (no junk)\n✅ 2.5L paani\n✅ Stress management\n✅ Annual checkup\n\nKya aap apna specific concern thoda aur describe karein? Main better help karna chahta hoon! 😊',
+                '💡 Main ARIA hoon — bahut kuch jaanta hoon lekin yeh specific detail abhi mujhe seekhna hai! \n\nYahan kuch helpful steps hain:\n1. Apne GP (family doctor) se milein\n2. Symptoms ka record rakhein (kab se, kitna, kya worse karta hai)\n3. Diet, sleep aur stress ko track karein\n\nAgar aap symptom ya body part mention karein — main zyada targeted answer de sakta hoon. Sawal poochho — main yahaan hoon! 🎯',
+                '🧠 Interesting question! Is topic pe aur research ho rahi hai. Abhi ke liye:\n\n🩺 Doctor se consultataion sabse reliable source hai.\n\n🌿 General health maintain karein: neend, exercise, paani, diet, checkup — ye 5 cheezein 80% problems prevent karti hain.\n\nDoosra kuch poochhein — main full effort karoonga iska jawab dene mein! 💪',
+            ];
+            return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
+
+        function addMessage(role, text) {
+            const box = document.getElementById('ariaMessages');
+            const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const div = document.createElement('div');
+            div.className = 'msg-bubble ' + role;
+            div.innerHTML = '<div class="msg-text">' + text + '</div><div class="msg-time">' + time + '</div>';
+            div.style.animation = 'fadeInUp 0.3s ease';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function showTyping() {
+            const box = document.getElementById('ariaMessages');
+            const t = document.createElement('div');
+            t.className = 'msg-bubble aria typing-indicator';
+            t.id = 'typingBubble';
+            t.innerHTML = '<div class="msg-text"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            box.appendChild(t);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typingBubble');
+            if (t) t.remove();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('ariaInput');
+            const q = input.value.trim();
+            if (!q) return;
+            addMessage('user', q);
+            input.value = '';
+            showTyping();
+            setTimeout(() => { removeTyping(); addMessage('aria', getAriaReply(q)); }, 900 + Math.random() * 600);
+        }
+
+        function sendQuick(btn) {
+            const text = btn.textContent.trim();
+            addMessage('user', text);
+            showTyping();
+            setTimeout(() => { removeTyping(); addMessage('aria', getAriaReply(text)); }, 1000);
+        }
+
+        // Welcome message
+        setTimeout(() => {
+            addMessage('aria', '👋 Namaste! Main ARIA hoon — aapki AI Health Coach. Diet, exercise, neend ya kisi bhi health topic par mujhse kuch bhi poochhein! Neeche quick buttons bhi use kar sakte hain. 😊');
+        }, 600);
+
+        /* ── Points & Plan Logic ── */
+        let points = 0;
+        const MAX_POINTS = 50;
+
+        function toggleTask(item) {
+            item.classList.toggle('done');
+            const pts = parseInt(item.querySelector('.task-points').textContent.replace(/\D/g, ''));
+            if (item.classList.contains('done')) {
+                points += pts;
+                item.querySelector('.task-check').textContent = '✓';
+                item.querySelector('.task-check').style.background = 'rgba(0,255,136,0.2)';
+                item.querySelector('.task-check').style.borderColor = 'var(--success)';
+                item.querySelector('.task-check').style.color = 'var(--success)';
+            } else {
+                points = Math.max(0, points - pts);
+                item.querySelector('.task-check').textContent = '';
+                item.querySelector('.task-check').style.background = '';
+                item.querySelector('.task-check').style.borderColor = '';
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            document.getElementById('todayProgress').textContent = points;
+            document.getElementById('progressFill').style.width = Math.min((points / MAX_POINTS) * 100, 100) + '%';
+            document.getElementById('progressText').textContent = points + '/' + MAX_POINTS + ' points daily goal';
+            localStorage.setItem('healthai_coach_points', points);
+        }
+
+        function showPlan(plan, btn) {
+            document.querySelectorAll('.plan-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            ['today', 'exercise', 'diet', 'sleep'].forEach(p => {
+                const el = document.getElementById('plan-' + p);
+                if (el) el.style.display = p === plan ? 'block' : 'none';
+            });
+        }
+
+        const hour = new Date().getHours();
+        const greetings = {
+            morning: 'Good morning! Starting the day right is 80% of the battle. I have prepared your optimal morning routine. Let us build some great habits today! 💪',
+            afternoon: 'Good afternoon! Remember to stay hydrated — you should have had 1.5L by now. Your afternoon walk will significantly reduce your cardiovascular risk. Keep going! 🚶',
+            evening: 'Good evening! Based on your health data, I recommend a light dinner and screen-free wind-down tonight. Sleep is where healing happens! 🌙',
+        };
+        const greeting = hour < 12 ? greetings.morning : hour < 17 ? greetings.afternoon : greetings.evening;
+        document.getElementById('coachGreeting').textContent = greeting;
+
+        points = parseInt(localStorage.getItem('healthai_coach_points') || '0');
+        updateProgress();
+    </script>
+</body>
+
+</html>

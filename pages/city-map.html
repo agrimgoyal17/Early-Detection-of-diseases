@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>City Health Risk Map — HealthAI Pro</title>
+    <meta name="description"
+        content="Interactive map showing disease risk trends across Indian cities with real-time health data." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .map-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .map-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .india-map-container {
+            position: relative;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            height: 500px;
+        }
+
+        #india-map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .city-marker {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .city-marker:hover .city-dot {
+            r: 12;
+        }
+
+        .city-dot {
+            transition: r 0.2s ease;
+        }
+
+        .city-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            fill: rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+        }
+
+        .city-popup {
+            position: absolute;
+            background: rgba(6, 15, 30, 0.97);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            width: 220px;
+            pointer-events: none;
+            z-index: 100;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .city-popup-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .city-popup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-size: 0.8rem;
+        }
+
+        .city-popup-hidden {
+            display: none;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* City Cards - Right Panel */
+        .city-list-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .city-risk-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 0.75rem;
+        }
+
+        .city-risk-item:hover {
+            background: rgba(0, 212, 255, 0.06);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            margin-bottom: calc(0.75rem - 2px);
+        }
+
+        .city-risk-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .city-rank {
+            font-size: 1.1rem;
+            font-weight: 800;
+            width: 28px;
+            flex-shrink: 0;
+        }
+
+        .city-info {
+            flex: 1;
+        }
+
+        .city-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .city-risks {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .city-risk-level {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Filter Buttons */
+        .filter-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.4rem 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .filter-btn.active {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Bottom Stats */
+        .national-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .national-stat {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+
+        .national-stat-val {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .national-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 900px) {
+            .map-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .national-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="health-data.html" class="nav-link">Health Data</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="report.html" class="btn-nav-primary">Health Report</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">🗺️ City Health <span class="gradient-text">Risk Map</span></h1>
+        <p class="page-subtitle">Disease risk trends across Indian cities — based on lifestyle patterns, pollution, and
+            health data</p>
+    </div>
+
+    <div class="page-content">
+        <!-- Filter -->
+        <div class="filter-btns">
+            <button class="filter-btn active" onclick="filterMap('all', this)">🔍 All Risks</button>
+            <button class="filter-btn" onclick="filterMap('stress', this)">🧠 Stress Risk</button>
+            <button class="filter-btn" onclick="filterMap('diabetes', this)">🩸 Diabetes</button>
+            <button class="filter-btn" onclick="filterMap('heart', this)">❤️ Heart Disease</button>
+            <button class="filter-btn" onclick="filterMap('obesity', this)">⚖️ Obesity</button>
+            <button class="filter-btn" onclick="filterMap('air', this)">🌫️ Air Quality</button>
+        </div>
+
+        <div class="map-layout">
+            <!-- Map -->
+            <div class="map-card">
+                <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1.25rem;">📍 India Disease Risk Visualization
+                </h2>
+                <div class="india-map-container" id="mapContainer">
+                    <svg id="india-map-svg" viewBox="0 0 550 600" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Simplified India outline -->
+                        <path
+                            d="M180,30 L280,20 L370,40 L420,80 L450,130 L460,180 L430,240 L440,290 L420,340 L400,400 L380,450 L350,480 L320,500 L290,520 L270,540 L250,555 L230,545 L210,520 L190,490 L170,460 L150,430 L130,400 L110,360 L100,320 L90,280 L85,240 L90,200 L100,160 L120,110 L150,70 Z"
+                            fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.2)" stroke-width="1.5" />
+                        <!-- Kashmir/North -->
+                        <path d="M180,30 L220,15 L260,10 L280,20 L290,35 L270,45 L240,50 L210,45 L190,38 Z"
+                            fill="rgba(0,212,255,0.03)" stroke="rgba(0,212,255,0.15)" stroke-width="1" />
+                        <!-- Grid lines (lat/lon style) -->
+                        <line x1="0" y1="200" x2="550" y2="200" stroke="rgba(0,212,255,0.05)" stroke-width="0.5" />
+                        <line x1="0" y1="350" x2="550" y2="350" stroke="rgba(0,212,255,0.05)" stroke-width="0.5" />
+                        <line x1="150" y1="0" x2="150" y2="600" stroke="rgba(0,212,255,0.05)" stroke-width="0.5" />
+                        <line x1="330" y1="0" x2="330" y2="600" stroke="rgba(0,212,255,0.05)" stroke-width="0.5" />
+
+                        <!-- City Markers -->
+                        <g class="city-marker" onclick="showCityInfo('Delhi')" id="mDelhi">
+                            <circle class="city-dot" cx="230" cy="120" r="9" fill="#ff4757" opacity="0.85" />
+                            <circle cx="230" cy="120" r="20" fill="#ff4757" opacity="0.12" />
+                            <text class="city-label" x="243" y="124" font-weight="600">Delhi</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Mumbai')" id="mMumbai">
+                            <circle class="city-dot" cx="145" cy="300" r="9" fill="#ffb347" opacity="0.85" />
+                            <circle cx="145" cy="300" r="20" fill="#ffb347" opacity="0.12" />
+                            <text class="city-label" x="158" y="304" font-weight="600">Mumbai</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Bangalore')" id="mBangalore">
+                            <circle class="city-dot" cx="200" cy="420" r="8" fill="#00ff88" opacity="0.85" />
+                            <circle cx="200" cy="420" r="18" fill="#00ff88" opacity="0.1" />
+                            <text class="city-label" x="213" y="424">Bengaluru</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Chennai')" id="mChennai">
+                            <circle class="city-dot" cx="255" cy="440" r="8" fill="#ffb347" opacity="0.85" />
+                            <circle cx="255" cy="440" r="16" fill="#ffb347" opacity="0.1" />
+                            <text class="city-label" x="268" y="444">Chennai</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Kolkata')" id="mKolkata">
+                            <circle class="city-dot" cx="340" cy="240" r="8" fill="#ff4757" opacity="0.85" />
+                            <circle cx="340" cy="240" r="18" fill="#ff4757" opacity="0.1" />
+                            <text class="city-label" x="353" y="244">Kolkata</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Hyderabad')" id="mHyderabad">
+                            <circle class="city-dot" cx="225" cy="360" r="8" fill="#ffb347" opacity="0.85" />
+                            <circle cx="225" cy="360" r="16" fill="#ffb347" opacity="0.1" />
+                            <text class="city-label" x="238" y="364">Hyderabad</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Agra')" id="mAgra">
+                            <circle class="city-dot" cx="236" cy="148" r="7" fill="#ff4757" opacity="0.85" />
+                            <circle cx="236" cy="148" r="14" fill="#ff4757" opacity="0.1" />
+                            <text class="city-label" x="247" y="152">Agra</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Jaipur')" id="mJaipur">
+                            <circle class="city-dot" cx="185" cy="165" r="7" fill="#ffb347" opacity="0.85" />
+                            <circle cx="185" cy="165" r="14" fill="#ffb347" opacity="0.1" />
+                            <text class="city-label" x="196" y="169">Jaipur</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Pune')" id="mPune">
+                            <circle class="city-dot" cx="155" cy="330" r="7" fill="#00ff88" opacity="0.85" />
+                            <circle cx="155" cy="330" r="14" fill="#00ff88" opacity="0.1" />
+                            <text class="city-label" x="166" y="334">Pune</text>
+                        </g>
+                        <g class="city-marker" onclick="showCityInfo('Ahmedabad')" id="mAhmedabad">
+                            <circle class="city-dot" cx="130" cy="220" r="8" fill="#ffb347" opacity="0.85" />
+                            <circle cx="130" cy="220" r="16" fill="#ffb347" opacity="0.1" />
+                            <text class="city-label" x="143" y="224">Ahmedabad</text>
+                        </g>
+                    </svg>
+                    <div class="city-popup city-popup-hidden" id="cityPopup">
+                        <div class="city-popup-name" id="popupName">Delhi</div>
+                        <div id="popupContent"></div>
+                    </div>
+                </div>
+                <div class="map-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ff4757;"></div> High Risk
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ffb347;"></div> Medium Risk
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#00ff88;"></div> Low Risk
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:rgba(0,212,255,0.4);"></div> Monitored
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: City List -->
+            <div>
+                <div class="city-list-card">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">📊 City Risk Rankings</h3>
+                    <div id="cityList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- National Stats -->
+        <div class="national-stats">
+            <div class="national-stat">
+                <div class="national-stat-val">68%</div>
+                <div class="national-stat-label">Urban areas with High Stress Risk</div>
+            </div>
+            <div class="national-stat">
+                <div class="national-stat-val">77M</div>
+                <div class="national-stat-label">Estimated diabetes cases nationally</div>
+            </div>
+            <div class="national-stat">
+                <div class="national-stat-val">+23%</div>
+                <div class="national-stat-label">Rise in obesity risk (2018–2024)</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        const cityData = {
+            Delhi: { risk: 'high', riskColor: '#ff4757', dominant: 'Stress & Air Pollution', risks: { stress: 85, diabetes: 72, heart: 78, obesity: 68, air: 92 }, pop: '32M', advice: 'Extreme air quality risk. Use air purifiers, wear masks outdoors, avoid outdoor exercise on bad AQI days.' },
+            Mumbai: { risk: 'medium', riskColor: '#ffb347', dominant: 'Obesity Risk', risks: { stress: 72, diabetes: 65, heart: 70, obesity: 82, air: 74 }, pop: '21M', advice: 'High sedentary lifestyle patterns due to long commutes. Beach walks and local exercise recommended.' },
+            Bangalore: { risk: 'low', riskColor: '#00ff88', dominant: 'Relatively Healthy', risks: { stress: 58, diabetes: 45, heart: 48, obesity: 55, air: 55 }, pop: '13M', advice: 'Bengaluru shows better health metrics. Maintain the healthy startup culture but reduce screen time.' },
+            Chennai: { risk: 'medium', riskColor: '#ffb347', dominant: 'Diabetes Risk', risks: { stress: 65, diabetes: 78, heart: 60, obesity: 70, air: 62 }, pop: '11M', advice: 'Rice-heavy diet is linked to higher diabetes risk. Increase fiber intake, reduce refined carbs.' },
+            Kolkata: { risk: 'high', riskColor: '#ff4757', dominant: 'Cardiovascular Risk', risks: { stress: 78, diabetes: 68, heart: 82, obesity: 72, air: 80 }, pop: '15M', advice: 'High salt diet and oil-heavy cuisine increases cardiovascular risk. Monitor blood pressure regularly.' },
+            Hyderabad: { risk: 'medium', riskColor: '#ffb347', dominant: 'Lifestyle Diseases', risks: { stress: 68, diabetes: 70, heart: 65, obesity: 74, air: 68 }, pop: '10M', advice: 'Spicy, rich food culture poses metabolic risks. Regular exercise and fiber intake recommended.' },
+            Agra: { risk: 'high', riskColor: '#ff4757', dominant: 'Diabetes Risk', risks: { stress: 75, diabetes: 88, heart: 72, obesity: 78, air: 82 }, pop: '1.8M', advice: 'High sugar consumption and sedentary lifestyle. Regular blood glucose monitoring essential.' },
+            Jaipur: { risk: 'medium', riskColor: '#ffb347', dominant: 'Heat-related Stress', risks: { stress: 70, diabetes: 62, heart: 65, obesity: 65, air: 72 }, pop: '3.7M', advice: 'High temperatures pose heat stress risks. Stay hydrated, avoid outdoor activity in peak hours.' },
+            Pune: { risk: 'low', riskColor: '#00ff88', dominant: 'Moderate Risk Overall', risks: { stress: 55, diabetes: 52, heart: 50, obesity: 58, air: 58 }, pop: '6M', advice: 'Good health indicators overall. Maintain active lifestyle and healthy Maharashtrian cuisine.' },
+            Ahmedabad: { risk: 'medium', riskColor: '#ffb347', dominant: 'Obesity & Heart Risk', risks: { stress: 68, diabetes: 70, heart: 74, obesity: 80, air: 76 }, pop: '8M', advice: 'Oil-heavy Gujarati snack culture poses obesity risk. Balanced diet and exercise critical.' },
+        };
+
+        let currentFilter = 'all';
+
+        function renderCityList(filter = 'all') {
+            const cities = Object.entries(cityData).sort((a, b) => {
+                const getScore = d => filter === 'all' ? Math.max(...Object.values(d.risks)) : (d.risks[filter] || 0);
+                return getScore(b[1]) - getScore(a[1]);
+            });
+
+            const riskIcons = { high: '🔴', medium: '🟡', low: '🟢' };
+            document.getElementById('cityList').innerHTML = cities.map(([name, d], i) => {
+                const score = filter === 'all' ? Math.round(Object.values(d.risks).reduce((s, v) => s + v, 0) / Object.keys(d.risks).length) : (d.risks[filter] || 0);
+                return `
+          <div class="city-risk-item" onclick="showCityInfo('${name}')">
+            <div class="city-rank">${i + 1}</div>
+            <div class="city-risk-dot" style="color:${d.riskColor};background:${d.riskColor};"></div>
+            <div class="city-info">
+              <div class="city-name">${name}</div>
+              <div class="city-risks">${d.dominant}</div>
+            </div>
+            <div class="city-risk-level" style="color:${d.riskColor}">${score}%</div>
+          </div>
+        `;
+            }).join('');
+        }
+
+        function showCityInfo(name) {
+            const d = cityData[name];
+            if (!d) return;
+            const popup = document.getElementById('cityPopup');
+            popup.classList.remove('city-popup-hidden');
+            document.getElementById('popupName').textContent = `📍 ${name}`;
+            document.getElementById('popupContent').innerHTML = `
+        <div style="margin-bottom:0.75rem;">
+          <span class="risk-badge risk-${d.risk}">${d.risk.toUpperCase()} RISK</span>
+          <span style="font-size:0.75rem;color:var(--text-muted);margin-left:0.5rem;">Pop. ${d.pop}</span>
+        </div>
+        <div class="city-popup-row"><span>🧠 Stress</span><span style="color:${d.risks.stress > 70 ? '#ff4757' : '#ffb347'}">${d.risks.stress}%</span></div>
+        <div class="city-popup-row"><span>🩸 Diabetes</span><span style="color:${d.risks.diabetes > 70 ? '#ff4757' : '#ffb347'}">${d.risks.diabetes}%</span></div>
+        <div class="city-popup-row"><span>❤️ Heart</span><span style="color:${d.risks.heart > 70 ? '#ff4757' : '#ffb347'}">${d.risks.heart}%</span></div>
+        <div class="city-popup-row"><span>⚖️ Obesity</span><span style="color:${d.risks.obesity > 70 ? '#ff4757' : '#ffb347'}">${d.risks.obesity}%</span></div>
+        <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:6px;padding:0.6rem;margin-top:0.75rem;font-size:0.75rem;color:var(--text-secondary);line-height:1.5">${d.advice}</div>
+      `;
+
+            // Position popup near click
+            popup.style.left = '1rem';
+            popup.style.top = '1rem';
+            setTimeout(() => { popup.classList.add('city-popup-hidden'); }, 8000);
+        }
+
+        function filterMap(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCityList(filter);
+        }
+
+        // Close popup on map click
+        document.getElementById('mapContainer').addEventListener('click', (e) => {
+            if (!e.target.closest('.city-marker')) {
+                document.getElementById('cityPopup').classList.add('city-popup-hidden');
+            }
+        });
+
+        renderCityList();
+    </script>
+</body>
+
+</html>

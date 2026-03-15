@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Report — HealthAI Pro</title>
+    <meta name="description"
+        content="Generate and download your comprehensive AI-powered health risk report with personalized recommendations." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .report-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .report-preview {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .report-header-bar {
+            background: var(--grad-primary);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-header-bar::after {
+            content: '';
+            position: absolute;
+            right: -30px;
+            top: -30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .report-body {
+            padding: 2rem;
+        }
+
+        .report-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .report-section-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .report-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .report-info-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.875rem;
+        }
+
+        .report-info-key {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .report-info-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        .risk-full-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-full-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .risk-full-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .risk-full-pct {
+            font-size: 0.8rem;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .reco-section .reco-card-item {
+            background: rgba(0, 212, 255, 0.04);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .reco-card-item h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .reco-card-item p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Sidebar */
+        .report-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .sidebar-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: var(--grad-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.4);
+        }
+
+        .print-area {
+            display: none;
+        }
+
+        @media print {
+
+            .navbar,
+            .page-header .page-subtitle,
+            .report-sidebar,
+            .btn-primary,
+            .btn-secondary,
+            .btn-ghost,
+            canvas,
+            #particles-canvas {
+                display: none !important;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .report-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .print-area {
+                display: block !important;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .report-preview {
+                border: 1px solid #ccc !important;
+                background: white !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .report-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .report-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="health-data.html" class="nav-link">Update Data</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="coach.html" class="btn-nav-primary">Health Coach</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">📋 AI Health <span class="gradient-text">Report</span></h1>
+        <p class="page-subtitle">Your comprehensive AI-generated health analysis with risk assessment and personalized
+            recommendations</p>
+    </div>
+
+    <div class="page-content">
+        <div class="report-layout">
+            <!-- Report Preview -->
+            <div class="report-preview" id="reportContent">
+                <!-- Report Header -->
+                <div class="report-header-bar">
+                    <div style="display:flex;align-items:center;gap:1rem;position:relative;z-index:1;">
+                        <div style="font-size:2.5rem;">🏥</div>
+                        <div>
+                            <div style="font-size:1.5rem;font-weight:800;">AI Preventive Health Report</div>
+                            <div style="font-size:0.85rem;opacity:0.85;">HealthAI Pro — Powered by Artificial
+                                Intelligence</div>
+                            <div style="font-size:0.75rem;opacity:0.7;margin-top:0.25rem;" id="reportDate">Generated on
+                                —</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-body">
+                    <!-- Patient Info -->
+                    <div class="report-section">
+                        <div class="report-section-title">👤 Patient Information</div>
+                        <div class="report-info-grid" id="patientInfo">
+                            <div class="report-info-item">
+                                <div class="report-info-key">Name</div>
+                                <div class="report-info-val" id="rptName">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Age</div>
+                                <div class="report-info-val" id="rptAge">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Gender</div>
+                                <div class="report-info-val" id="rptGender">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Height</div>
+                                <div class="report-info-val" id="rptHeight">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Weight</div>
+                                <div class="report-info-val" id="rptWeight">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">BMI</div>
+                                <div class="report-info-val" id="rptBMI">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">City</div>
+                                <div class="report-info-val" id="rptCity">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Lifestyle</div>
+                                <div class="report-info-val" id="rptLifestyle">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Health Score</div>
+                                <div class="report-info-val" style="color:var(--primary);">78/100</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vital Stats -->
+                    <div class="report-section">
+                        <div class="report-section-title">🩺 Vital Health Metrics</div>
+                        <div class="report-info-grid">
+                            <div class="report-info-item">
+                                <div class="report-info-key">Blood Pressure</div>
+                                <div class="report-info-val" id="rptBP" style="color:#00ff88">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Blood Sugar</div>
+                                <div class="report-info-val" id="rptSugar" style="color:#00ff88">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Sleep Hours</div>
+                                <div class="report-info-val" id="rptSleep">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Exercise</div>
+                                <div class="report-info-val" id="rptExercise">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Fast Food Freq.</div>
+                                <div class="report-info-val" id="rptFF">—</div>
+                            </div>
+                            <div class="report-info-item">
+                                <div class="report-info-key">Stress Level</div>
+                                <div class="report-info-val" id="rptStress">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div class="report-section">
+                        <div class="report-section-title">🎯 AI Disease Risk Assessment</div>
+                        <div id="riskList">
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">❤️ Heart Disease</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:22%;background:#00ff88;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#00ff88">22%</div>
+                                <div class="risk-badge risk-low">Low</div>
+                            </div>
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">🩸 Type 2 Diabetes</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:18%;background:#00ff88;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#00ff88">18%</div>
+                                <div class="risk-badge risk-low">Low</div>
+                            </div>
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">⚖️ Obesity Risk</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:44%;background:#ffb347;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#ffb347">44%</div>
+                                <div class="risk-badge risk-medium">Medium</div>
+                            </div>
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">🧠 Stress Disorder</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:42%;background:#ffb347;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#ffb347">42%</div>
+                                <div class="risk-badge risk-medium">Medium</div>
+                            </div>
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">🛋️ Sedentary Risk</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:25%;background:#00ff88;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#00ff88">25%</div>
+                                <div class="risk-badge risk-low">Low</div>
+                            </div>
+                            <div class="risk-full-item">
+                                <div style="width:130px;font-size:0.85rem;font-weight:500;">💊 Hypertension</div>
+                                <div class="risk-full-bar">
+                                    <div class="risk-full-fill" style="width:28%;background:#00ff88;"></div>
+                                </div>
+                                <div class="risk-full-pct" style="color:#00ff88">28%</div>
+                                <div class="risk-badge risk-low">Low</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Twin Projection -->
+                    <div class="report-section">
+                        <div class="report-section-title">🤖 Digital Health Twin — 5-Year Projection</div>
+                        <div
+                            style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.25rem;">
+                            <div
+                                style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.75rem;text-align:center;">
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#00d4ff;">2026</div>
+                                    <div style="font-size:1.25rem;font-weight:800;color:#00ff88;">80</div>
+                                    <div class="risk-badge risk-low" style="font-size:0.65rem;padding:0.15rem 0.5rem;">
+                                        Low</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#00d4ff;">2027</div>
+                                    <div style="font-size:1.25rem;font-weight:800;color:#00ff88;">78</div>
+                                    <div class="risk-badge risk-low" style="font-size:0.65rem;padding:0.15rem 0.5rem;">
+                                        Low</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#00d4ff;">2028</div>
+                                    <div style="font-size:1.25rem;font-weight:800;color:#ffb347;">74</div>
+                                    <div class="risk-badge risk-medium"
+                                        style="font-size:0.65rem;padding:0.15rem 0.5rem;">Med</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#00d4ff;">2029</div>
+                                    <div style="font-size:1.25rem;font-weight:800;color:#ffb347;">70</div>
+                                    <div class="risk-badge risk-medium"
+                                        style="font-size:0.65rem;padding:0.15rem 0.5rem;">Med</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#00d4ff;">2030</div>
+                                    <div style="font-size:1.25rem;font-weight:800;color:#ff4757;">65</div>
+                                    <div class="risk-badge risk-high" style="font-size:0.65rem;padding:0.15rem 0.5rem;">
+                                        High</div>
+                                </div>
+                            </div>
+                            <p
+                                style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.875rem;padding-top:0.875rem;border-top:1px solid var(--border);">
+                                ⚠️ Without lifestyle changes, your health score is projected to decline to
+                                <strong>65</strong> by 2030. With AI-recommended interventions, you can maintain a score
+                                above <strong>80</strong>.</p>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="report-section reco-section">
+                        <div class="report-section-title">💡 AI-Powered Recommendations</div>
+                        <div class="reco-card-item" style="border-color:rgba(0,255,136,0.2);">
+                            <h4>🏃 Physical Activity</h4>
+                            <p>Increase daily exercise to 45 minutes minimum. Focus on cardiovascular activities (brisk
+                                walking, cycling) 4-5 days/week combined with strength training 2 days/week. This can
+                                improve your health score by 8-12 points within 30 days.</p>
+                        </div>
+                        <div class="reco-card-item" style="border-color:rgba(255,179,71,0.2);">
+                            <h4>🥗 Dietary Adjustments</h4>
+                            <p>Reduce fast food frequency to ≤1x/week. Increase vegetables to 5+ servings/day. Limit
+                                sugar intake under 25g/day. Prioritize whole grains, legumes and lean proteins. Drink
+                                2.5L water daily. Expected diabetes risk reduction: 15-20%.</p>
+                        </div>
+                        <div class="reco-card-item" style="border-color:rgba(123,47,247,0.2);">
+                            <h4>😴 Sleep Optimization</h4>
+                            <p>Target 7-8 hours of sleep. Maintain consistent sleep/wake times. Implement a 30-minute
+                                wind-down routine. No caffeine after 3 PM. Sleep optimization alone can reduce stress
+                                risk by 25% and improve cognitive performance.</p>
+                        </div>
+                        <div class="reco-card-item" style="border-color:rgba(0,212,255,0.2);">
+                            <h4>🧘 Stress Management</h4>
+                            <p>Practice daily mindfulness or meditation (10+ minutes). Social connections reduce
+                                cortisol by 23%. Regular outdoor exposure, hobbies and adequate sleep are critical.
+                                Consider professional counseling if stress persists above 65%.</p>
+                        </div>
+                    </div>
+
+                    <!-- Doctor Advice -->
+                    <div class="report-section"
+                        style="border:1px solid rgba(255,71,87,0.2);border-radius:var(--radius-md);padding:1.25rem;background:rgba(255,71,87,0.04);">
+                        <div class="report-section-title" style="color:var(--danger);">⚠️ Medical Disclaimer</div>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">This report is
+                            generated by AI algorithms and is intended for informational and educational purposes only.
+                            It is NOT a substitute for professional medical advice, diagnosis, or treatment. Please
+                            consult a qualified healthcare provider before making any health decisions. HealthAI Pro is
+                            a preventive health awareness tool — not a medical diagnostic device.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="report-sidebar">
+                <div class="sidebar-card">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">📥 Download Report</h3>
+                    <button class="generate-btn" onclick="downloadReport()">
+                        <span>🖨️ Download PDF</span>
+                    </button>
+                    <button class="generate-btn"
+                        style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--primary);"
+                        onclick="shareReport()">
+                        <span>📤 Share Report</span>
+                    </button>
+                    <button class="generate-btn"
+                        style="background:rgba(123,47,247,0.1);border:1px solid rgba(123,47,247,0.3);color:#7b2ff7;"
+                        onclick="window.print()">
+                        <span>🖨️ Print Report</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">📊 Report Summary</h3>
+                    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-muted);">Overall Status</span>
+                            <span class="risk-badge risk-low">Good Health</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-muted);">Active Risks</span>
+                            <span style="color:var(--warning);font-weight:600;">2 Medium</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-muted);">Critical Risks</span>
+                            <span style="color:var(--success);font-weight:600;">None ✅</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-muted);">Health Score</span>
+                            <span style="color:var(--primary);font-weight:700;">78/100</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-muted);">Report Date</span>
+                            <span style="font-weight:500;" id="sidebarDate">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card"
+                    style="background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(123,47,247,0.04));border-color:rgba(0,212,255,0.2);">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;color:var(--primary);">🎯 Next Steps
+                    </h3>
+                    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                        <a href="coach.html"
+                            style="display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;color:var(--text-secondary);transition:color 0.3s;"
+                            onmouseover="this.style.color='var(--primary)'"
+                            onmouseout="this.style.color='var(--text-secondary)'">
+                            <span>→</span> View personalized health coach plan
+                        </a>
+                        <a href="digital-twin.html"
+                            style="display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;color:var(--text-secondary);transition:color 0.3s;"
+                            onmouseover="this.style.color='var(--primary)'"
+                            onmouseout="this.style.color='var(--text-secondary)'">
+                            <span>→</span> Explore digital health twin simulation
+                        </a>
+                        <a href="gamification.html"
+                            style="display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;color:var(--text-secondary);transition:color 0.3s;"
+                            onmouseover="this.style.color='var(--primary)'"
+                            onmouseout="this.style.color='var(--text-secondary)'">
+                            <span>→</span> Start daily health challenges
+                        </a>
+                        <a href="health-mirror.html"
+                            style="display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;color:var(--text-secondary);transition:color 0.3s;"
+                            onmouseover="this.style.color='var(--primary)'"
+                            onmouseout="this.style.color='var(--text-secondary)'">
+                            <span>→</span> Run AI Health Mirror analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        // Load data
+        const hp = JSON.parse(localStorage.getItem('healthai_profile') || '{}');
+        const hd = JSON.parse(localStorage.getItem('healthai_health_data') || '{}');
+        const user = JSON.parse(localStorage.getItem('healthai_user') || '{}');
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('reportDate').textContent = `Generated on ${dateStr}`;
+        document.getElementById('sidebarDate').textContent = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        // Fill profile data
+        const name = hp.fullName || user.name || 'Guest User';
+        document.getElementById('rptName').textContent = name;
+        document.getElementById('rptAge').textContent = hp.age ? hp.age + ' years' : '—';
+        document.getElementById('rptGender').textContent = hp.gender ? hp.gender.charAt(0).toUpperCase() + hp.gender.slice(1) : '—';
+        document.getElementById('rptHeight').textContent = hp.height ? hp.height + ' cm' : '—';
+        document.getElementById('rptWeight').textContent = hp.weight ? hp.weight + ' kg' : '—';
+        document.getElementById('rptBMI').textContent = hp.bmi && hp.bmi !== '—' ? hp.bmi : '—';
+        document.getElementById('rptCity').textContent = hp.city || '—';
+        document.getElementById('rptLifestyle').textContent = hp.lifestyle ? hp.lifestyle.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
+
+        // Fill health data
+        if (hd.bp) {
+            const bpNum = parseInt(hd.bp);
+            document.getElementById('rptBP').textContent = hd.bp + ' mmHg';
+            document.getElementById('rptBP').style.color = bpNum > 140 ? '#ff4757' : bpNum > 120 ? '#ffb347' : '#00ff88';
+        }
+        if (hd.sugar) {
+            const sNum = parseInt(hd.sugar);
+            document.getElementById('rptSugar').textContent = hd.sugar + ' mg/dL';
+            document.getElementById('rptSugar').style.color = sNum > 120 ? '#ff4757' : sNum > 100 ? '#ffb347' : '#00ff88';
+        }
+        if (hd.sleep) document.getElementById('rptSleep').textContent = hd.sleep + ' hrs/night';
+        if (hd.exercise) document.getElementById('rptExercise').textContent = hd.exercise + ' min/day';
+        if (hd.fastFood) document.getElementById('rptFF').textContent = hd.fastFood == 0 ? 'Never' : hd.fastFood >= 7 ? 'Daily' : hd.fastFood + 'x/week';
+        if (hd.stress) document.getElementById('rptStress').textContent = hd.stress + '/10';
+
+        function downloadReport() {
+            const btn = event.target;
+            btn.innerHTML = '⏳ Generating PDF...';
+            btn.disabled = true;
+            setTimeout(() => {
+                window.print();
+                btn.innerHTML = '🖨️ Download PDF';
+                btn.disabled = false;
+            }, 500);
+        }
+
+        function shareReport() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My AI Health Report — HealthAI Pro',
+                    text: `My health score is 78/100 with Low overall risk. Generated by HealthAI Pro.`,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Report link copied to clipboard!', 'success');
+            }
+        }
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>✅</span><span>${msg}</span>`;
+            let tc = document.querySelector('.toast-container');
+            if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container'; document.body.appendChild(tc); }
+            tc.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

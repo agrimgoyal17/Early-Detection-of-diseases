@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Dashboard — HealthAI Pro</title>
+    <meta name="description"
+        content="Your unified AI health dashboard — scores, risk cards, predictions, and progress all in one place." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--card-glow) 0%, transparent 70%);
+            opacity: 0.4;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+        }
+
+        .stat-card-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .change-up {
+            color: var(--success);
+        }
+
+        .change-down {
+            color: var(--danger);
+        }
+
+        .dash-row {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dash-row-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .dash-row-3 {
+            grid-template-columns: 2fr 1fr 1fr;
+        }
+
+        .dash-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .dash-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .dash-card-title a {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Risk overview */
+        .risk-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .risk-mini {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.875rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            transition: all var(--transition);
+        }
+
+        .risk-mini:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .risk-mini-icon {
+            font-size: 1.5rem;
+        }
+
+        .risk-mini-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .risk-mini-level {
+            font-size: 0.7rem;
+            margin-top: 0.15rem;
+        }
+
+        /* AI Insights */
+        .insight-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .insight-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .insight-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .qa-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .qa-btn:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .qa-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .qa-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Twin mini chart */
+        .twin-mini {
+            height: 140px;
+        }
+
+        /* Radial health score */
+        .health-score-center {
+            text-align: center;
+        }
+
+        .circular-score {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 1rem;
+        }
+
+        .cs-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .cs-track {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 10;
+        }
+
+        .cs-progress {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dasharray 2s ease;
+        }
+
+        .cs-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cs-num {
+            font-size: 2rem;
+            font-weight: 900;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cs-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 1024px) {
+            .dash-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dash-row-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .dash-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-row-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="health-data.html" class="nav-link">Health Data</a>
+                <a href="digital-twin.html" class="nav-link">Digital Twin</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="report.html" class="btn-nav-primary">Get Report</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;">
+            <div>
+                <h1 class="page-title">📊 Health <span class="gradient-text">Dashboard</span></h1>
+                <p class="page-subtitle" id="dashGreeting">Good morning! Here's your complete health overview</p>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button class="btn-ghost" onclick="window.location.href='report.html'">📋 Download Report</button>
+                <button class="btn-primary" onclick="window.location.href='health-data.html'">🔄 Update Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- Stat Cards Row -->
+        <div class="dash-grid">
+            <div class="stat-card" style="--card-glow:rgba(0,212,255,0.3);">
+                <div class="stat-card-icon">🎯</div>
+                <div class="stat-card-value" id="dashHealth">78</div>
+                <div class="stat-card-label">Overall Health Score</div>
+                <div class="stat-card-change change-up">↑ +3 from last week</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(255,71,87,0.3);">
+                <div class="stat-card-icon">💓</div>
+                <div class="stat-card-value">72</div>
+                <div class="stat-card-label">Heart Rate (BPM)</div>
+                <div class="stat-card-change change-up">✅ Normal range</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(0,255,136,0.3);">
+                <div class="stat-card-icon">😴</div>
+                <div class="stat-card-value" id="dashSleep">7</div>
+                <div class="stat-card-label">Sleep Hours</div>
+                <div class="stat-card-change change-up">✅ Optimal</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(255,179,71,0.3);">
+                <div class="stat-card-icon">🧠</div>
+                <div class="stat-card-value">42</div>
+                <div class="stat-card-label">Stress Level (%)</div>
+                <div class="stat-card-change">⚠️ Moderate</div>
+            </div>
+        </div>
+
+        <!-- Row 2: Chart + Health Score + Risks -->
+        <div class="dash-row dash-row-3">
+            <!-- Progress Chart -->
+            <div class="dash-card">
+                <div class="dash-card-title">
+                    <span>📈 7-Day Health Trend</span>
+                    <a href="health-data.html">Update →</a>
+                </div>
+                <canvas id="trendChart" height="180"></canvas>
+            </div>
+
+            <!-- Health Score -->
+            <div class="dash-card health-score-center">
+                <div class="dash-card-title"><span>🎯 Health Score</span></div>
+                <div class="circular-score">
+                    <svg class="cs-svg" viewBox="0 0 120 120">
+                        <circle class="cs-track" cx="60" cy="60" r="50" />
+                        <circle class="cs-progress" cx="60" cy="60" r="50" stroke="url(#dashGrad)"
+                            stroke-dasharray="0 314" id="scoreProgress" />
+                        <defs>
+                            <linearGradient id="dashGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="cs-text">
+                        <div class="cs-num" id="scoreNum">78</div>
+                        <div class="cs-label">/ 100</div>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">BMI</span><span style="font-weight:600;"
+                            id="dashBMI">23.2</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">Blood Pressure</span><span style="font-weight:600;"
+                            id="dashBP">120 mmHg</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">Blood Sugar</span><span style="font-weight:600;"
+                            id="dashSugar">90 mg/dL</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">Exercise</span><span style="font-weight:600;"
+                            id="dashExercise">30 min/day</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="dash-card">
+                <div class="dash-card-title"><span>⚡ Quick Access</span></div>
+                <div class="quick-actions">
+                    <a href="health-mirror.html" class="qa-btn">
+                        <div class="qa-icon">🪞</div>
+                        <div class="qa-label">AI Mirror</div>
+                    </a>
+                    <a href="food-analysis.html" class="qa-btn">
+                        <div class="qa-icon">🍎</div>
+                        <div class="qa-label">Food Analysis</div>
+                    </a>
+                    <a href="voice-stress.html" class="qa-btn">
+                        <div class="qa-icon">🎙️</div>
+                        <div class="qa-label">Voice Stress</div>
+                    </a>
+                    <a href="coach.html" class="qa-btn">
+                        <div class="qa-icon">💪</div>
+                        <div class="qa-label">Health Coach</div>
+                    </a>
+                    <a href="digital-twin.html" class="qa-btn">
+                        <div class="qa-icon">🤖</div>
+                        <div class="qa-label">Digital Twin</div>
+                    </a>
+                    <a href="gamification.html" class="qa-btn">
+                        <div class="qa-icon">🏆</div>
+                        <div class="qa-label">Health Score</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Risk Cards + AI Insights -->
+        <div class="dash-row dash-row-2">
+            <!-- Risk Cards -->
+            <div class="dash-card">
+                <div class="dash-card-title">
+                    <span>🧬 Disease Risk Overview</span>
+                    <a href="health-data.html">Full Analysis →</a>
+                </div>
+                <div class="risk-mini-grid">
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">❤️</div>
+                        <div>
+                            <div class="risk-mini-name">Heart Disease</div>
+                            <div class="risk-mini-level" style="color:#00ff88">Low Risk — 22%</div>
+                        </div>
+                    </div>
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">🩸</div>
+                        <div>
+                            <div class="risk-mini-name">Diabetes</div>
+                            <div class="risk-mini-level" style="color:#00ff88">Low Risk — 18%</div>
+                        </div>
+                    </div>
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">⚖️</div>
+                        <div>
+                            <div class="risk-mini-name">Obesity</div>
+                            <div class="risk-mini-level" style="color:#ffb347">Medium Risk — 44%</div>
+                        </div>
+                    </div>
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">🧠</div>
+                        <div>
+                            <div class="risk-mini-name">Stress Disorder</div>
+                            <div class="risk-mini-level" style="color:#ffb347">Medium Risk — 42%</div>
+                        </div>
+                    </div>
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">🛋️</div>
+                        <div>
+                            <div class="risk-mini-name">Sedentary Risk</div>
+                            <div class="risk-mini-level" style="color:#00ff88">Low Risk — 25%</div>
+                        </div>
+                    </div>
+                    <div class="risk-mini">
+                        <div class="risk-mini-icon">💊</div>
+                        <div>
+                            <div class="risk-mini-name">Hypertension</div>
+                            <div class="risk-mini-level" style="color:#00ff88">Low Risk — 28%</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <canvas id="riskRadar" height="220"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Insights + Digital Twin Preview -->
+            <div style="display:flex;flex-direction:column;gap:1.5rem;">
+                <div class="dash-card">
+                    <div class="dash-card-title">
+                        <span>🤖 AI Health Insights</span>
+                        <a href="coach.html">Coach →</a>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">✅</div>
+                        <div>
+                            <div class="insight-text">Your sleep patterns have improved by 15% this week. Keep
+                                maintaining 7+ hours.</div>
+                            <div class="insight-time">Today, 8:00 AM</div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">⚠️</div>
+                        <div>
+                            <div class="insight-text">Stress indicators are moderately elevated. Consider a 5-minute
+                                breathing exercise after lunch.</div>
+                            <div class="insight-time">Yesterday, 3:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">💡</div>
+                        <div>
+                            <div class="insight-text">Your exercise routine is consistent — you are 30% above the weekly
+                                minimum requirement!</div>
+                            <div class="insight-time">2 days ago</div>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon">🎯</div>
+                        <div>
+                            <div class="insight-text">At your current trajectory, your health score could reach 85+ by
+                                next month if you maintain these habits.</div>
+                            <div class="insight-time">3 days ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="dash-card-title">
+                        <span>🤖 Digital Twin Preview</span>
+                        <a href="digital-twin.html">Full View →</a>
+                    </div>
+                    <canvas id="twinMini" class="twin-mini" height="140"></canvas>
+                    <div style="display:flex;justify-content:space-between;margin-top:0.75rem;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">2025</span>
+                        <span style="color:var(--primary);font-weight:600;">Now: 78</span>
+                        <span style="color:var(--text-muted);">2030</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        // Load data
+        const hp = JSON.parse(localStorage.getItem('healthai_profile') || '{}');
+        const hd = JSON.parse(localStorage.getItem('healthai_health_data') || '{}');
+        const user = JSON.parse(localStorage.getItem('healthai_user') || '{}');
+
+        // Populate
+        if (hd.bp) document.getElementById('dashBP').textContent = hd.bp + ' mmHg';
+        if (hd.sugar) document.getElementById('dashSugar').textContent = hd.sugar + ' mg/dL';
+        if (hd.sleep) document.getElementById('dashSleep').textContent = hd.sleep;
+        if (hd.exercise) document.getElementById('dashExercise').textContent = hd.exercise + ' min/day';
+        if (hp.bmi && hp.bmi !== '—') document.getElementById('dashBMI').textContent = hp.bmi;
+
+        // Greeting
+        const h = new Date().getHours();
+        const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+        const name = user.name || hp.fullName || 'Health User';
+        document.getElementById('dashGreeting').textContent = `${greet}, ${name}! Here's your AI health overview`;
+
+        // Trend Chart
+        new Chart(document.getElementById('trendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Health Score',
+                    data: [72, 74, 71, 76, 78, 75, 78],
+                    borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.08)',
+                    borderWidth: 2.5, pointRadius: 4, fill: true, tension: 0.4,
+                }, {
+                    label: 'Stress Level',
+                    data: [55, 48, 60, 45, 42, 38, 42],
+                    borderColor: '#ffb347', backgroundColor: 'rgba(255,179,71,0.05)',
+                    borderWidth: 2, pointRadius: 3, fill: true, tension: 0.4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#8892a4', font: { family: 'Outfit', size: 11 } } }, tooltip: { backgroundColor: 'rgba(6,15,30,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, titleColor: '#f0f4ff', bodyColor: '#8892a4' } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a4', font: { family: 'Outfit', size: 11 } } },
+                    y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a4', font: { family: 'Outfit', size: 11 } } }
+                }
+            }
+        });
+
+        // Score circle
+        const circumference = 2 * Math.PI * 50;
+        const score = 78;
+        setTimeout(() => {
+            document.getElementById('scoreProgress').setAttribute('stroke-dasharray', `${(score / 100) * circumference} ${circumference}`);
+        }, 300);
+
+        // Risk Radar
+        new Chart(document.getElementById('riskRadar').getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Heart', 'Diabetes', 'Obesity', 'Stress', 'Sedentary', 'Hypertension'],
+                datasets: [{
+                    label: 'Risk %',
+                    data: [22, 18, 44, 42, 25, 28],
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0,212,255,0.1)',
+                    pointBackgroundColor: '#00d4ff',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        min: 0, max: 100,
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        angleLines: { color: 'rgba(255,255,255,0.06)' },
+                        pointLabels: { color: '#8892a4', font: { family: 'Outfit', size: 11 } },
+                        ticks: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Twin Mini
+        new Chart(document.getElementById('twinMini').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['2025', '2026', '2027', '2028', '2029', '2030'],
+                datasets: [{
+                    data: [78, 76, 73, 69, 65, 61],
+                    borderColor: '#ff4757', backgroundColor: 'rgba(255,71,87,0.08)',
+                    borderWidth: 2, fill: true, tension: 0.4, borderDash: [5, 3], pointRadius: 3,
+                    label: 'Without change',
+                }, {
+                    data: [78, 80, 82, 83, 83, 82],
+                    borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.05)',
+                    borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3,
+                    label: 'Improved habits',
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#8892a4', font: { family: 'Outfit', size: 10 } } }, tooltip: { backgroundColor: 'rgba(6,15,30,0.95)' } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a4', font: { size: 10 } } },
+                    y: { min: 40, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a4', font: { size: 10 } } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Image Analysis — HealthAI Pro</title>
+    <meta name="description"
+        content="Upload food photos for instant AI calorie detection, nutrition analysis and health impact scoring." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .food-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(0, 212, 255, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            background: rgba(0, 212, 255, 0.02);
+            position: relative;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.06);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4));
+        }
+
+        .upload-zone h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .image-preview {
+            width: 100%;
+            border-radius: var(--radius-md);
+            object-fit: contain;
+            max-height: 350px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .analyzing-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 8, 20, 0.85);
+            border-radius: var(--radius-lg);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+
+        .analyzing-overlay.active {
+            display: flex;
+        }
+
+        .scan-ring {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .results-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .detected-food {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--grad-card);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .detected-food-icon {
+            font-size: 3rem;
+        }
+
+        .detected-food-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .detected-food-conf {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .confidence-badge {
+            margin-left: auto;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--success);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.7rem;
+            border-radius: var(--radius-full);
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .nutrition-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.875rem;
+            text-align: center;
+        }
+
+        .nutrition-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nutrition-unit {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .nutrition-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        .health-impact {
+            background: rgba(255, 71, 87, 0.06);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .health-impact.low {
+            background: rgba(0, 255, 136, 0.06);
+            border-color: rgba(0, 255, 136, 0.2);
+        }
+
+        .health-impact.medium {
+            background: rgba(255, 179, 71, 0.06);
+            border-color: rgba(255, 179, 71, 0.2);
+        }
+
+        .food-log {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-icon {
+            font-size: 1.5rem;
+        }
+
+        .log-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .log-calories {
+            margin-left: auto;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            .food-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="health-mirror.html" class="nav-link">AI Mirror</a>
+                <a href="voice-stress.html" class="nav-link">Voice Stress</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="dashboard.html" class="btn-nav-primary">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">🍎 Food Image <span class="gradient-text">Analysis</span></h1>
+        <p class="page-subtitle">Upload a food photo — AI detects food type, calories, nutrients, and health impact
+            instantly</p>
+    </div>
+
+    <div class="page-content">
+        <div class="food-layout">
+            <!-- Upload section -->
+            <div>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+                    ondragover="e=>e.preventDefault()" ondrop="handleDrop(event)">
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this.files[0])" />
+                    <div class="analyzing-overlay" id="analyzeOverlay">
+                        <div class="scan-ring"></div>
+                        <p style="color:var(--primary);font-weight:600;">AI Analyzing Food...</p>
+                        <p style="font-size:0.8rem;color:var(--text-secondary);">Detecting calories, nutrients & health
+                            impact</p>
+                    </div>
+                    <div id="uploadContent">
+                        <div class="upload-icon">📸</div>
+                        <h3>Drop your food photo here</h3>
+                        <p>or click to browse — JPG, PNG, WebP supported</p>
+                        <div style="margin-top:1.5rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
+                            <span class="chip">🍔 Burgers</span>
+                            <span class="chip">🥗 Salads</span>
+                            <span class="chip">🍕 Pizza</span>
+                            <span class="chip">🍱 Meals</span>
+                            <span class="chip">🥤 Drinks</span>
+                        </div>
+                    </div>
+                    <img id="imagePreview" class="image-preview" alt="Food preview" />
+                </div>
+
+                <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+                    <button class="btn-ghost" onclick="useSampleFood('burger')">🍔 Try Burger</button>
+                    <button class="btn-ghost" onclick="useSampleFood('salad')">🥗 Try Salad</button>
+                    <button class="btn-ghost" onclick="useSampleFood('pizza')">🍕 Try Pizza</button>
+                    <button class="btn-ghost" onclick="useSampleFood('rice')">🍛 Try Rice Bowl</button>
+                    <button class="btn-ghost" onclick="useSampleFood('fruit')">🍎 Try Fruit</button>
+                </div>
+
+                <!-- Daily Totals -->
+                <div
+                    style="margin-top:2rem;background:rgba(6,15,30,0.7);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;backdrop-filter:blur(20px);">
+                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">📊 Today's Totals</h3>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center;">
+                        <div>
+                            <div style="font-size:1.5rem;font-weight:700;color:var(--primary);" id="totalCals">0</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">Calories</div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.5rem;font-weight:700;color:#00ff88;" id="totalProtein">0g</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">Protein</div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.5rem;font-weight:700;color:#ffb347;" id="totalCarbs">0g</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">Carbs</div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.5rem;font-weight:700;color:#ff4757;" id="totalFat">0g</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">Fat</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="margin-top:1rem;height:6px;">
+                        <div class="progress-fill" id="calProgress"
+                            style="width:0%;background:linear-gradient(90deg,#00ff88,#ffb347,#ff4757);transition:width 1s ease;">
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;text-align:right;"
+                        id="calGoalText">0 / 2000 kcal daily goal</div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div>
+                <div class="results-card" id="resultsCard">
+                    <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1.25rem;">🔬 Analysis Results</h2>
+                    <div id="resultsContent">
+                        <p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:2rem 0;">Upload a
+                            food image to see detailed nutritional analysis</p>
+                    </div>
+                </div>
+
+                <!-- Food Log -->
+                <div class="food-log" id="foodLog" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;font-weight:600;">🗒️ Today's Food Log</h3>
+                        <button class="btn-ghost" onclick="clearLog()">Clear</button>
+                    </div>
+                    <div id="logList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        const foodDatabase = {
+            burger: { name: 'Cheeseburger', icon: '🍔', calories: 450, protein: 25, carbs: 38, fat: 22, fiber: 2, sugar: 8, sodium: 920, impact: 'high', warning: '⚠️ High fat intake — 22g saturated fat detected. Limit to once a week.', confidence: 96, tips: ['Remove the bun to save 120 calories', 'Avoid extra cheese', 'Pair with a side salad instead of fries'] },
+            salad: { name: 'Garden Salad', icon: '🥗', calories: 95, protein: 4, carbs: 14, fat: 3, fiber: 6, sugar: 5, sodium: 120, impact: 'low', warning: '✅ Excellent choice! Rich in fiber and micronutrients.', confidence: 94, tips: ['Add grilled chicken for protein boost', 'Use lemon dressing instead of mayo', 'Excellent for weight management'] },
+            pizza: { name: 'Pepperoni Pizza', icon: '🍕', calories: 380, protein: 18, carbs: 42, fat: 14, fiber: 2, sugar: 5, sodium: 760, impact: 'medium', warning: '⚠️ Moderate risk — high sodium content (760mg per slice).', confidence: 92, tips: ['Limit to 2 slices', 'Choose thin crust to reduce carbs', 'Add vegetables as toppings'] },
+            rice: { name: 'Rice Bowl', icon: '🍛', calories: 280, protein: 14, carbs: 52, fat: 4, fiber: 4, sugar: 3, sodium: 420, impact: 'low', warning: '✅ Balanced meal. Good carbohydrate-to-protein ratio.', confidence: 90, tips: ['Use brown rice for more fiber', 'Add vegetables for micronutrients', 'Control portion size for weight management'] },
+            fruit: { name: 'Fresh Fruit', icon: '🍎', calories: 80, protein: 1, carbs: 20, fat: 0.3, fiber: 4, sugar: 16, sodium: 2, impact: 'low', warning: '✅ Excellent choice! Natural sugars and high antioxidant content.', confidence: 98, tips: ['Great pre-workout snack', 'Rich in Vitamin C and antioxidants', 'Natural sugar is better than processed'] },
+        };
+
+        let log = JSON.parse(localStorage.getItem('healthai_food_log') || '[]');
+        let totalCals = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const file = e.dataTransfer?.files?.[0];
+            if (file) handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('imagePreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('uploadContent').style.display = 'none';
+                analyzeImage();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function useSampleFood(type) {
+            const food = foodDatabase[type];
+            // Show icon in upload zone
+            document.getElementById('uploadContent').innerHTML = `<div style="font-size:8rem;filter:drop-shadow(0 0 20px rgba(0,212,255,0.4))">${food.icon}</div><p style="font-size:1rem;color:var(--primary);font-weight:600;">${food.name}</p>`;
+            document.getElementById('imagePreview').style.display = 'none';
+            analyzeImage(type);
+        }
+
+        function analyzeImage(type = null) {
+            const overlay = document.getElementById('analyzeOverlay');
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                const foodType = type || Object.keys(foodDatabase)[Math.floor(Math.random() * Object.keys(foodDatabase).length)];
+                showResults(foodDatabase[foodType]);
+            }, 2200);
+        }
+
+        function showResults(food) {
+            const impactColors = { low: 'var(--success)', medium: 'var(--warning)', high: 'var(--danger)' };
+            const impactClass = food.impact;
+            document.getElementById('resultsContent').innerHTML = `
+        <div class="detected-food">
+          <div class="detected-food-icon">${food.icon}</div>
+          <div>
+            <div class="detected-food-name">${food.name}</div>
+            <div class="detected-food-conf">AI Food Detection</div>
+          </div>
+          <div class="confidence-badge">${food.confidence}% match</div>
+        </div>
+        <div class="nutrition-grid">
+          <div class="nutrition-item">
+            <div class="nutrition-value">${food.calories}</div>
+            <div class="nutrition-unit">kcal</div>
+            <div class="nutrition-label">Calories</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value" style="background:linear-gradient(135deg,#00ff88,#00d4ff);-webkit-background-clip:text;background-clip:text;">${food.protein}g</div>
+            <div class="nutrition-unit">protein</div>
+            <div class="nutrition-label">Protein</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value" style="background:linear-gradient(135deg,#ffb347,#ffcd39);-webkit-background-clip:text;background-clip:text;">${food.carbs}g</div>
+            <div class="nutrition-unit">carbs</div>
+            <div class="nutrition-label">Carbohydrates</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value" style="background:linear-gradient(135deg,#ff4757,#ff6b6b);-webkit-background-clip:text;background-clip:text;">${food.fat}g</div>
+            <div class="nutrition-unit">fat</div>
+            <div class="nutrition-label">Total Fat</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1.25rem;font-size:0.78rem;text-align:center;">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:0.6rem;border-radius:var(--radius-sm);">
+            <div style="font-weight:600;">${food.fiber}g</div>
+            <div style="color:var(--text-muted);">Fiber</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:0.6rem;border-radius:var(--radius-sm);">
+            <div style="font-weight:600;">${food.sugar}g</div>
+            <div style="color:var(--text-muted);">Sugar</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:0.6rem;border-radius:var(--radius-sm);">
+            <div style="font-weight:600;">${food.sodium}mg</div>
+            <div style="color:var(--text-muted);">Sodium</div>
+          </div>
+        </div>
+        <div class="health-impact ${impactClass}" style="border-color:${impactColors[impactClass]}40;background:${impactColors[impactClass]}08;">
+          <div style="font-weight:600;font-size:0.85rem;color:${impactColors[impactClass]};margin-bottom:0.25rem;">Health Impact: ${impactClass.toUpperCase()}</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);">${food.warning}</div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.8rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">💡 Tips</div>
+          ${food.tips.map(t => `<div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.3rem;display:flex;gap:0.4rem;"><span>•</span>${t}</div>`).join('')}
+        </div>
+        <button class="btn-primary" style="width:100%;margin-top:1.25rem;justify-content:center;" onclick='addToLog(${JSON.stringify(food)})'>+ Add to Food Log</button>
+      `;
+        }
+
+        function addToLog(food) {
+            const now = new Date();
+            const entry = { ...food, time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+            log.push(entry);
+            localStorage.setItem('healthai_food_log', JSON.stringify(log));
+            updateTotals();
+            renderLog();
+            showToast(`${food.icon} ${food.name} added to food log!`, 'success');
+        }
+
+        function updateTotals() {
+            totalCals = log.reduce((s, f) => s + f.calories, 0);
+            totalProtein = log.reduce((s, f) => s + f.protein, 0);
+            totalCarbs = log.reduce((s, f) => s + f.carbs, 0);
+            totalFat = log.reduce((s, f) => s + f.fat, 0);
+            document.getElementById('totalCals').textContent = totalCals;
+            document.getElementById('totalProtein').textContent = totalProtein + 'g';
+            document.getElementById('totalCarbs').textContent = totalCarbs + 'g';
+            document.getElementById('totalFat').textContent = totalFat + 'g';
+            document.getElementById('calProgress').style.width = Math.min((totalCals / 2000) * 100, 100) + '%';
+            document.getElementById('calGoalText').textContent = `${totalCals} / 2000 kcal daily goal`;
+        }
+
+        function renderLog() {
+            if (!log.length) { document.getElementById('foodLog').style.display = 'none'; return; }
+            document.getElementById('foodLog').style.display = 'block';
+            document.getElementById('logList').innerHTML = log.slice(-5).reverse().map(f => `
+        <div class="log-item">
+          <div class="log-icon">${f.icon}</div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:500;">${f.name}</div>
+            <div class="log-time">${f.time}</div>
+          </div>
+          <div class="log-calories">${f.calories} kcal</div>
+        </div>
+      `).join('');
+        }
+
+        function clearLog() {
+            log = [];
+            localStorage.removeItem('healthai_food_log');
+            updateTotals();
+            renderLog();
+        }
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>✅</span><span>${msg}</span>`;
+            let tc = document.querySelector('.toast-container');
+            if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container'; document.body.appendChild(tc); }
+            tc.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // Init
+        updateTotals();
+        renderLog();
+
+        // Drag
+        const zone = document.getElementById('uploadZone');
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', e => { zone.classList.remove('dragover'); handleDrop(e); });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Health Mirror — HealthAI Pro</title>
+    <meta name="description"
+        content="Real-time AI face analysis for heart rate, stress, fatigue and posture detection." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .mirror-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 2rem;
+        }
+
+        .camera-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .camera-viewport {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        #videoEl {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        /* Face scan animation */
+        .face-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 200px;
+            border: 2px solid rgba(0, 212, 255, 0.6);
+            border-radius: 50%/60%;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--primary);
+            border-style: solid;
+        }
+
+        .corner.tl {
+            top: 20px;
+            left: 20px;
+            border-width: 2px 0 0 2px;
+        }
+
+        .corner.tr {
+            top: 20px;
+            right: 20px;
+            border-width: 2px 2px 0 0;
+        }
+
+        .corner.bl {
+            bottom: 20px;
+            left: 20px;
+            border-width: 0 0 2px 2px;
+        }
+
+        .corner.br {
+            bottom: 20px;
+            right: 20px;
+            border-width: 0 2px 2px 0;
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scan-line 2.5s ease-in-out infinite;
+            display: none;
+        }
+
+        .scan-line.active {
+            display: block;
+        }
+
+        .camera-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .camera-placeholder.hidden {
+            display: none;
+        }
+
+        .camera-btn-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 71, 87, 0.12);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: var(--radius-full);
+            padding: 0.3rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--danger);
+        }
+
+        .status-pill.active {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.3);
+            color: var(--success);
+        }
+
+        /* Results panel */
+        .results-panel {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-emoji {
+            font-size: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .metric-info {
+            flex: 1;
+        }
+
+        .metric-info-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-info-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-info-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            margin-top: 0.4rem;
+            overflow: hidden;
+        }
+
+        .metric-info-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s ease;
+        }
+
+        .heartbeat-line {
+            height: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .heartbeat-svg {
+            width: 100%;
+            height: 40px;
+        }
+
+        .hb-path {
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+            animation: draw 2s linear infinite;
+            fill: none;
+            stroke: #ff4757;
+            stroke-width: 2;
+        }
+
+        .reco-card {
+            background: rgba(0, 212, 255, 0.06);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reco-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: var(--primary);
+        }
+
+        .reco-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        @media (max-width: 900px) {
+            .mirror-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="voice-stress.html" class="nav-link">Voice Stress</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="food-analysis.html" class="btn-nav-primary">Food Analysis</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">🪞 AI Health <span class="gradient-text">Mirror</span></h1>
+        <p class="page-subtitle">Real-time webcam analysis of facial signals for health monitoring</p>
+    </div>
+
+    <div class="page-content">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+            <div class="status-pill" id="statusPill">⏸ Camera Off</div>
+            <span style="font-size:0.8rem;color:var(--text-muted);">For demo & hackathon purposes — simulated AI
+                analysis</span>
+        </div>
+
+        <div class="mirror-layout">
+            <!-- Camera -->
+            <div class="camera-card">
+                <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1.25rem;">👁️ Live Camera Feed</h2>
+                <div class="camera-viewport">
+                    <video id="videoEl" autoplay muted playsinline></video>
+                    <div class="camera-overlay">
+                        <div class="corner tl"></div>
+                        <div class="corner tr"></div>
+                        <div class="corner bl"></div>
+                        <div class="corner br"></div>
+                        <div class="scan-line" id="scanLine"></div>
+                        <div class="face-frame" id="faceFrame" style="display:none;"></div>
+                    </div>
+                    <div class="camera-placeholder" id="cameraPlaceholder">
+                        <div
+                            style="font-size:5rem;margin-bottom:1rem;filter:drop-shadow(0 0 20px rgba(0,212,255,0.5));">
+                            🪞</div>
+                        <p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;max-width:250px;">
+                            Position your face in the frame and click Start Analysis</p>
+                    </div>
+                </div>
+                <div class="camera-btn-row">
+                    <button class="btn-primary" id="startBtn" onclick="startCamera()">
+                        <span>▶ Start Analysis</span>
+                    </button>
+                    <button class="btn-secondary" id="stopBtn" onclick="stopCamera()" style="display:none;">
+                        <span>⏹ Stop Camera</span>
+                    </button>
+                    <button class="btn-ghost" onclick="captureSnapshot()">📸 Capture</button>
+                </div>
+                <div
+                    style="margin-top:1.25rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem;">
+                    <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;color:var(--primary);">AI Analysis
+                        Mode</div>
+                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <label
+                            style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input
+                                type="checkbox" id="checkHR" checked style="accent-color:var(--primary)" /> Heart
+                            Rate</label>
+                        <label
+                            style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input
+                                type="checkbox" id="checkStress" checked /> Stress</label>
+                        <label
+                            style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input
+                                type="checkbox" id="checkFatigue" checked /> Fatigue</label>
+                        <label
+                            style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input
+                                type="checkbox" id="checkPosture" /> Posture</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-panel">
+                <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1.25rem;">📊 Analysis Results</h2>
+                <div id="analysisResults">
+                    <p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:2rem 0;">Start the
+                        camera to begin real-time health analysis</p>
+                </div>
+                <div class="reco-card" id="recommendations" style="display:none;">
+                    <div class="reco-title">💡 AI Recommendations</div>
+                    <div id="recoList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        let stream = null;
+        let analysisInterval = null;
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: 'user' } });
+                document.getElementById('videoEl').srcObject = stream;
+                document.getElementById('cameraPlaceholder').classList.add('hidden');
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'flex';
+                document.getElementById('statusPill').textContent = '🟢 Analyzing...';
+                document.getElementById('statusPill').classList.add('active');
+                document.getElementById('scanLine').classList.add('active');
+                document.getElementById('faceFrame').style.display = 'block';
+                startSimulatedAnalysis();
+            } catch (err) {
+                // Fallback — run simulated without camera
+                document.getElementById('cameraPlaceholder').innerHTML = `
+          <div style="font-size:4rem;margin-bottom:1rem;">🪞</div>
+          <p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;max-width:260px;">Camera access denied. Running simulated AI analysis for demo.</p>
+        `;
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'flex';
+                document.getElementById('statusPill').textContent = '🔵 Simulated Mode';
+                document.getElementById('statusPill').classList.add('active');
+                document.getElementById('scanLine').classList.add('active');
+                startSimulatedAnalysis();
+            }
+        }
+
+        function stopCamera() {
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            clearInterval(analysisInterval);
+            document.getElementById('videoEl').srcObject = null;
+            document.getElementById('cameraPlaceholder').classList.remove('hidden');
+            document.getElementById('startBtn').style.display = 'flex';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('statusPill').textContent = '⏸ Camera Off';
+            document.getElementById('statusPill').classList.remove('active');
+            document.getElementById('scanLine').classList.remove('active');
+            document.getElementById('faceFrame').style.display = 'none';
+        }
+
+        function captureSnapshot() {
+            showToast('📸 Snapshot analysis saved!', 'success');
+        }
+
+        function startSimulatedAnalysis() {
+            let tick = 0;
+            updateResults(tick);
+            analysisInterval = setInterval(() => {
+                tick++;
+                updateResults(tick);
+            }, 3000);
+        }
+
+        function updateResults(tick) {
+            const hr = 68 + Math.floor(Math.sin(tick * 0.4) * 8 + Math.random() * 4);
+            const stress = Math.round(30 + Math.sin(tick * 0.3) * 15 + Math.random() * 10);
+            const fatigue = Math.round(25 + Math.sin(tick * 0.2) * 20 + Math.random() * 8);
+            const posture = Math.round(70 + Math.sin(tick * 0.5) * 15);
+            const confidence = 87 + Math.floor(Math.random() * 8);
+
+            const stressColor = stress >= 60 ? '#ff4757' : stress >= 40 ? '#ffb347' : '#00ff88';
+            const fatigueColor = fatigue >= 60 ? '#ff4757' : fatigue >= 40 ? '#ffb347' : '#00ff88';
+            const postureColor = posture >= 70 ? '#00ff88' : posture >= 50 ? '#ffb347' : '#ff4757';
+
+            document.getElementById('analysisResults').innerHTML = `
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:1rem;display:flex;justify-content:space-between;">
+          <span>AI Confidence: ${confidence}%</span>
+          <span>Updated ${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric-emoji">💓</div>
+          <div class="metric-info">
+            <div class="metric-info-name">Heart Rate</div>
+            <div class="metric-info-value" style="color:#ff4757">${hr} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">BPM</span></div>
+            <div class="metric-info-bar"><div class="metric-info-fill" style="width:${Math.min((hr / 200) * 100, 100)}%;background:#ff4757;"></div></div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-emoji">🧠</div>
+          <div class="metric-info">
+            <div class="metric-info-name">Stress Level</div>
+            <div class="metric-info-value" style="color:${stressColor}">${stress < 40 ? 'Low' : stress < 65 ? 'Moderate' : 'High'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${stress}%)</span></div>
+            <div class="metric-info-bar"><div class="metric-info-fill" style="width:${stress}%;background:${stressColor};"></div></div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-emoji">😪</div>
+          <div class="metric-info">
+            <div class="metric-info-name">Fatigue Index</div>
+            <div class="metric-info-value" style="color:${fatigueColor}">${fatigue < 40 ? 'Rested' : fatigue < 65 ? 'Mildly Tired' : 'Fatigued'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${fatigue}%)</span></div>
+            <div class="metric-info-bar"><div class="metric-info-fill" style="width:${fatigue}%;background:${fatigueColor};"></div></div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-emoji">🪑</div>
+          <div class="metric-info">
+            <div class="metric-info-name">Posture Quality</div>
+            <div class="metric-info-value" style="color:${postureColor}">${posture >= 70 ? 'Good' : posture >= 50 ? 'Fair' : 'Poor'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${posture}%)</span></div>
+            <div class="metric-info-bar"><div class="metric-info-fill" style="width:${posture}%;background:${postureColor};"></div></div>
+          </div>
+        </div>
+      `;
+
+            const recos = [];
+            if (hr > 80) recos.push('💓 Elevated heart rate — try deep breathing or a short walk');
+            if (stress >= 50) recos.push('🧘 Moderate stress detected — consider a 5-minute meditation break');
+            if (fatigue >= 50) recos.push('😴 Fatigue signs present — a 20-minute nap can improve performance by 34%');
+            if (posture < 65) recos.push('🪑 Adjust your sitting posture — keep spine aligned and feet flat');
+            if (!recos.length) recos.push('✅ All metrics look great! Keep up the excellent work.');
+
+            const rp = document.getElementById('recommendations');
+            rp.style.display = 'block';
+            document.getElementById('recoList').innerHTML = recos.map(r => `<div class="reco-item"><span>→</span><span>${r}</span></div>`).join('');
+        }
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>✅</span><span>${msg}</span>`;
+            let tc = document.querySelector('.toast-container');
+            if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container'; document.body.appendChild(tc); }
+            tc.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

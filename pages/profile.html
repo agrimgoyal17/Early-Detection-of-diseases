@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile — HealthAI Pro</title>
+    <meta name="description"
+        content="Set up your health profile. Your data powers personalized AI health predictions." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .profile-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        .profile-sidebar {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            height: fit-content;
+            position: sticky;
+            top: 6rem;
+        }
+
+        .avatar-wrapper {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 0.75rem;
+            border: 3px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .avatar:hover {
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.4);
+        }
+
+        .avatar-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .profile-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: all var(--transition);
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-nav a:hover,
+        .profile-nav a.active {
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--primary);
+            border-left: 2px solid var(--primary);
+        }
+
+        .profile-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .profile-section-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .profile-section-card h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .form-grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .bmi-display {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.06));
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .bmi-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .bmi-category {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .bmi-scale {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .bmi-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-full);
+            position: relative;
+            overflow: visible;
+        }
+
+        .bmi-fill {
+            position: absolute;
+            height: 100%;
+            border-radius: var(--radius-full);
+            background: var(--grad-primary);
+            transition: all 0.5s ease;
+        }
+
+        .bmi-indicator {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--primary);
+            top: -3px;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .save-btn-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+
+        .lifestyle-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .lifestyle-option {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .lifestyle-option:hover {
+            border-color: var(--primary);
+        }
+
+        .lifestyle-option.selected {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        .lifestyle-option .lifestyle-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lifestyle-option .lifestyle-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 900px) {
+            .profile-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-sidebar {
+                position: static;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .lifestyle-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="health-data.html" class="nav-link">Health Data</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="report.html" class="btn-nav-primary">Health Report</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">👤 User <span class="gradient-text">Profile</span></h1>
+        <p class="page-subtitle">Your health profile powers personalized AI predictions</p>
+    </div>
+
+    <div class="page-content">
+        <div class="profile-wrapper">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <div class="avatar-wrapper">
+                    <div class="avatar" id="avatarEl">😊</div>
+                    <div class="avatar-name" id="avatarName">Your Name</div>
+                    <div class="avatar-email" id="avatarEmail">your@email.com</div>
+                </div>
+                <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                    <div
+                        style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">
+                        Profile Completion</div>
+                    <div class="progress-bar" style="height:6px;margin-bottom:0.5rem;">
+                        <div class="progress-fill" id="profileProgress" style="width:0%"></div>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--primary);" id="profilePct">0% Complete</div>
+                </div>
+                <nav class="profile-nav" style="margin-top:1.5rem;">
+                    <a href="profile.html" class="active">👤 Personal Info</a>
+                    <a href="health-data.html">🩺 Health Data</a>
+                    <a href="dashboard.html">📊 Dashboard</a>
+                    <a href="digital-twin.html">🤖 Digital Twin</a>
+                    <a href="coach.html">💪 Health Coach</a>
+                    <a href="gamification.html">🏆 Health Score</a>
+                    <a href="report.html">📋 Health Report</a>
+                </nav>
+                <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+                    <button onclick="logout()" class="btn-ghost" style="width:100%;justify-content:center;">Sign
+                        Out</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="profile-main">
+                <!-- Personal Information -->
+                <div class="profile-section-card">
+                    <h2>👤 Personal Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="fullName" placeholder="Your full name"
+                                oninput="updateProfile()" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Age</label>
+                            <input type="number" class="form-input" id="age" placeholder="25" min="1" max="120"
+                                oninput="updateProfile()" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select class="form-input" id="gender" onchange="updateProfile()">
+                                <option value="">Select gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="non-binary">Non-binary</option>
+                                <option value="prefer-not">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-input" id="city" placeholder="Your city"
+                                oninput="updateProfile()" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Physical Measurements -->
+                <div class="profile-section-card">
+                    <h2>📏 Physical Measurements</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Height (cm)</label>
+                            <input type="number" class="form-input" id="heightCm" placeholder="170" min="100" max="250"
+                                oninput="calcBMI()" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Weight (kg)</label>
+                            <input type="number" class="form-input" id="weightKg" placeholder="70" min="20" max="250"
+                                oninput="calcBMI()" />
+                        </div>
+                    </div>
+                    <div class="bmi-display" id="bmiDisplay" style="margin-top:1.25rem;">
+                        <div>
+                            <div class="bmi-number" id="bmiValue">—</div>
+                            <div class="bmi-category" id="bmiCategory">Enter height & weight</div>
+                        </div>
+                        <div class="bmi-scale">
+                            <div
+                                style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.4rem;">
+                                <span>Underweight</span><span>Normal</span><span>Overweight</span><span>Obese</span>
+                            </div>
+                            <div class="bmi-bar">
+                                <div class="bmi-fill" id="bmiFill" style="width:0%"></div>
+                                <div class="bmi-indicator" id="bmiIndicator" style="left:0%"></div>
+                            </div>
+                            <div
+                                style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-muted);margin-top:0.4rem;">
+                                <span>18.5</span><span>25</span><span>30</span><span>40</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lifestyle Type -->
+                <div class="profile-section-card">
+                    <h2>🏃 Lifestyle Type</h2>
+                    <div class="lifestyle-grid" id="lifestyleGrid">
+                        <div class="lifestyle-option" onclick="selectLifestyle('sedentary')" data-value="sedentary">
+                            <div class="lifestyle-icon">🛋️</div>
+                            <div class="lifestyle-label">Sedentary</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">Desk work, little
+                                movement</div>
+                        </div>
+                        <div class="lifestyle-option" onclick="selectLifestyle('lightly-active')"
+                            data-value="lightly-active">
+                            <div class="lifestyle-icon">🚶</div>
+                            <div class="lifestyle-label">Lightly Active</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">1-3 days
+                                exercise/week</div>
+                        </div>
+                        <div class="lifestyle-option" onclick="selectLifestyle('moderately-active')"
+                            data-value="moderately-active">
+                            <div class="lifestyle-icon">🏃</div>
+                            <div class="lifestyle-label">Moderately Active</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">3-5 days
+                                exercise/week</div>
+                        </div>
+                        <div class="lifestyle-option" onclick="selectLifestyle('very-active')" data-value="very-active">
+                            <div class="lifestyle-icon">⚡</div>
+                            <div class="lifestyle-label">Very Active</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">Daily intense
+                                training</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="save-btn-wrapper">
+                    <button class="btn-primary btn-large" onclick="saveProfile()">
+                        <span>Save Profile & Continue</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        // Load user data
+        const user = JSON.parse(localStorage.getItem('healthai_user') || '{}');
+        const profile = JSON.parse(localStorage.getItem('healthai_profile') || '{}');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (user.name) { document.getElementById('avatarName').textContent = user.name; document.getElementById('avatarEmail').textContent = user.email || ''; }
+            if (profile.fullName) document.getElementById('fullName').value = profile.fullName;
+            if (profile.age) document.getElementById('age').value = profile.age;
+            if (profile.gender) document.getElementById('gender').value = profile.gender;
+            if (profile.city) document.getElementById('city').value = profile.city;
+            if (profile.height) document.getElementById('heightCm').value = profile.height;
+            if (profile.weight) document.getElementById('weightKg').value = profile.weight;
+            if (profile.lifestyle) selectLifestyle(profile.lifestyle);
+            if (profile.height && profile.weight) calcBMI();
+            updateProgress();
+        });
+
+        function calcBMI() {
+            const h = parseFloat(document.getElementById('heightCm').value) / 100;
+            const w = parseFloat(document.getElementById('weightKg').value);
+            if (h > 0 && w > 0) {
+                const bmi = (w / (h * h)).toFixed(1);
+                document.getElementById('bmiValue').textContent = bmi;
+                let cat = '', color = '', pct = 0;
+                if (bmi < 18.5) { cat = 'Underweight'; color = '#00d4ff'; pct = (bmi / 18.5) * 20; }
+                else if (bmi < 25) { cat = '✅ Normal Weight'; color = '#00ff88'; pct = 20 + ((bmi - 18.5) / 6.5) * 25; }
+                else if (bmi < 30) { cat = '⚠️ Overweight'; color = '#ffb347'; pct = 45 + ((bmi - 25) / 5) * 25; }
+                else { cat = '🔴 Obese'; color = '#ff4757'; pct = Math.min(70 + ((bmi - 30) / 10) * 30, 100); }
+                document.getElementById('bmiCategory').textContent = cat;
+                document.getElementById('bmiCategory').style.color = color;
+                document.getElementById('bmiFill').style.width = pct + '%';
+                document.getElementById('bmiFill').style.background = color;
+                document.getElementById('bmiIndicator').style.left = pct + '%';
+                document.getElementById('bmiIndicator').style.borderColor = color;
+                updateProgress();
+            }
+        }
+
+        let selectedLifestyle = '';
+        function selectLifestyle(val) {
+            selectedLifestyle = val;
+            document.querySelectorAll('.lifestyle-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.value === val);
+            });
+            updateProgress();
+        }
+
+        function updateProfile() { updateProgress(); }
+
+        function updateProgress() {
+            const fields = ['fullName', 'age', 'gender', 'city', 'heightCm', 'weightKg'];
+            let filled = fields.filter(id => document.getElementById(id)?.value?.trim()).length;
+            if (selectedLifestyle) filled++;
+            const pct = Math.round((filled / 7) * 100);
+            document.getElementById('profileProgress').style.width = pct + '%';
+            document.getElementById('profilePct').textContent = pct + '% Complete';
+        }
+
+        function saveProfile() {
+            const data = {
+                fullName: document.getElementById('fullName').value,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                city: document.getElementById('city').value,
+                height: document.getElementById('heightCm').value,
+                weight: document.getElementById('weightKg').value,
+                lifestyle: selectedLifestyle,
+                bmi: document.getElementById('bmiValue').textContent
+            };
+            localStorage.setItem('healthai_profile', JSON.stringify(data));
+            // Show success toast
+            showToast('Profile saved! Redirecting to Health Data...', 'success');
+            setTimeout(() => { window.location.href = 'health-data.html'; }, 1500);
+        }
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>${type === 'success' ? '✅' : 'ℹ️'}</span><span>${msg}</span>`;
+            let tc = document.querySelector('.toast-container');
+            if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container'; document.body.appendChild(tc); }
+            tc.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('healthai_user');
+            window.location.href = 'auth.html';
+        }
+    </script>
+</body>
+
+</html>

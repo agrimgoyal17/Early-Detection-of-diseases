@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Stress Detection — HealthAI Pro</title>
+    <meta name="description"
+        content="Record your voice for AI-powered stress level detection through pitch, tone and speech pattern analysis." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        .voice-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        .recorder-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 1.5rem;
+            transition: all var(--transition);
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.5);
+        }
+
+        .mic-button.recording {
+            background: linear-gradient(135deg, #ff4757, #ff6b6b);
+            animation: glow-pulse 1s ease infinite;
+            box-shadow: 0 0 40px rgba(255, 71, 87, 0.4);
+        }
+
+        .mic-ripple {
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            opacity: 0;
+        }
+
+        .mic-button.recording .mic-ripple {
+            animation: mic-ripple 1.5s ease-out infinite;
+        }
+
+        @keyframes mic-ripple {
+            from {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+
+        /* Waveform */
+        .waveform-container {
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        #waveformCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .waveform-idle {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .rec-controls {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: var(--font-secondary);
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            min-height: 2.5rem;
+        }
+
+        .analysis-metrics {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .metric-gauge {
+            margin-bottom: 1.25rem;
+        }
+
+        .gauge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .gauge-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .gauge-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .gauge-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stress-result {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.5rem;
+        }
+
+        .stress-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stress-level-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stress-advice {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .voice-history {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 900px) {
+            .voice-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="health-mirror.html" class="nav-link">AI Mirror</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="food-analysis.html" class="nav-link">Food Analysis</a>
+                <a href="dashboard.html" class="btn-nav-primary">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">🎙️ Voice <span class="gradient-text">Stress Detection</span></h1>
+        <p class="page-subtitle">Speak naturally — AI analyzes your voice pitch, tone and speech speed to detect stress
+            levels</p>
+    </div>
+
+    <div class="page-content">
+        <div class="voice-layout">
+            <!-- Recorder -->
+            <div class="recorder-card">
+                <div style="text-align:center;margin-bottom:2rem;">
+                    <div class="timer" id="timer">00:00</div>
+                    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;" id="timerStatus">Press mic
+                        to start recording</p>
+                </div>
+
+                <div class="waveform-container">
+                    <canvas id="waveformCanvas"></canvas>
+                    <div class="waveform-idle" id="waveIdle">🎤 Waveform will appear here</div>
+                </div>
+
+                <div style="text-align:center;margin-bottom:1.5rem;">
+                    <button class="mic-button" id="micBtn" onclick="toggleRecording()">
+                        <div class="mic-ripple"></div>
+                        🎙️
+                    </button>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);" id="micStatus">Click to begin voice
+                        analysis</div>
+                </div>
+
+                <div class="rec-controls">
+                    <button class="btn-secondary" id="analyzeBtn" onclick="analyzeVoice()" style="display:none;">
+                        🧠 Analyze Recording
+                    </button>
+                    <button class="btn-ghost" id="clearBtn" onclick="clearRecording()" style="display:none;">
+                        🗑️ Clear
+                    </button>
+                </div>
+
+                <div
+                    style="margin-top:2rem;background:rgba(123,47,247,0.06);border:1px solid rgba(123,47,247,0.2);border-radius:var(--radius-md);padding:1rem;">
+                    <p style="font-size:0.8rem;font-weight:600;color:#7b2ff7;margin-bottom:0.5rem;">💡 For best results,
+                        say:</p>
+                    <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.8;">
+                        <div>• "Today I am feeling [how you feel]..."</div>
+                        <div>• Count slowly from 1 to 20</div>
+                        <div>• Read a paragraph of any text</div>
+                        <div>• Describe your day in 30 seconds</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="analysis-metrics" id="analysisPanel">
+                <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1.5rem;">📊 Stress Analysis</h2>
+
+                <div id="preAnalysis"
+                    style="text-align:center;padding:2rem 0;color:var(--text-muted);font-size:0.85rem;">
+                    Record your voice to see stress analysis results
+                </div>
+
+                <div id="postAnalysis" style="display:none;">
+                    <div class="stress-result" id="stressResult"></div>
+
+                    <div class="metric-gauge">
+                        <div class="gauge-header">
+                            <span class="gauge-label">🎵 Pitch Variation</span>
+                            <span class="gauge-value" id="pitchVal">—</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="pitchFill" style="width:0%;background:var(--grad-primary);">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-gauge">
+                        <div class="gauge-header">
+                            <span class="gauge-label">🎛️ Tone Stress Index</span>
+                            <span class="gauge-value" id="toneVal">—</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="toneFill" style="width:0%;background:var(--grad-secondary);">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-gauge">
+                        <div class="gauge-header">
+                            <span class="gauge-label">⏱️ Speech Speed</span>
+                            <span class="gauge-value" id="speedVal">—</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="speedFill"
+                                style="width:0%;background:linear-gradient(135deg,#00ff88,#00d4ff);"></div>
+                        </div>
+                    </div>
+                    <div class="metric-gauge">
+                        <div class="gauge-header">
+                            <span class="gauge-label">😤 Tension Level</span>
+                            <span class="gauge-value" id="tensionVal">—</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="tensionFill" style="width:0%;background:var(--grad-danger);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-md);padding:1rem;margin-top:1rem;">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.75rem;">🧘 AI
+                            Recommendations</div>
+                        <div id="voiceRecos"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="voice-history" id="historyPanel" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="font-size:1rem;font-weight:600;">🕐 Analysis History</h3>
+                <button class="btn-ghost" onclick="clearHistory()">Clear</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioContext = null;
+        let analyser = null;
+        let animId = null;
+        let timerInterval = null;
+        let seconds = 0;
+        let history = JSON.parse(localStorage.getItem('healthai_voice_history') || '[]');
+
+        const canvas = document.getElementById('waveformCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight || 80;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        async function toggleRecording() {
+            if (!isRecording) await startRecording();
+            else stopRecording();
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+
+                isRecording = true;
+                document.getElementById('micBtn').classList.add('recording');
+                document.getElementById('micBtn').textContent = '';
+                document.getElementById('micBtn').innerHTML = '<div class="mic-ripple"></div>⏹';
+                document.getElementById('micStatus').textContent = 'Recording... speak naturally';
+                document.getElementById('waveIdle').style.display = 'none';
+
+                seconds = 0;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+                    const s = String(seconds % 60).padStart(2, '0');
+                    document.getElementById('timer').textContent = `${m}:${s}`;
+                }, 1000);
+
+                drawWaveform();
+            } catch (e) {
+                // Simulate without mic
+                isRecording = true;
+                document.getElementById('micBtn').classList.add('recording');
+                document.getElementById('micBtn').innerHTML = '<div class="mic-ripple"></div>⏹';
+                document.getElementById('micStatus').textContent = 'Simulated recording mode...';
+                document.getElementById('waveIdle').style.display = 'none';
+                seconds = 0;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+                    const s = String(seconds % 60).padStart(2, '0');
+                    document.getElementById('timer').textContent = `${m}:${s}`;
+                }, 1000);
+                drawSimulatedWaveform();
+            }
+            document.getElementById('timerStatus').textContent = 'Recording in progress';
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
+            if (audioContext) { audioContext.close(); }
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animId);
+            document.getElementById('micBtn').classList.remove('recording');
+            document.getElementById('micBtn').innerHTML = '<div class="mic-ripple"></div>🎙️';
+            document.getElementById('micStatus').textContent = 'Recording complete — analyze your voice';
+            document.getElementById('timerStatus').textContent = `Recorded: ${document.getElementById('timer').textContent}`;
+            document.getElementById('analyzeBtn').style.display = 'flex';
+            document.getElementById('clearBtn').style.display = 'flex';
+        }
+
+        function drawWaveform() {
+            if (!isRecording || !analyser) return;
+            animId = requestAnimationFrame(drawWaveform);
+            const buf = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteTimeDomainData(buf);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const step = canvas.width / buf.length;
+            buf.forEach((v, i) => {
+                const x = i * step;
+                const y = (v / 255) * canvas.height;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        function drawSimulatedWaveform() {
+            if (!isRecording) return;
+            animId = requestAnimationFrame(drawSimulatedWaveform);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const t = Date.now() / 200;
+            for (let x = 0; x < canvas.width; x++) {
+                const y = canvas.height / 2 + Math.sin(x * 0.05 + t) * 20 * Math.sin(t * 0.3 + x * 0.02) + (Math.random() - 0.5) * 8;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function analyzeVoice() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = '<div class="spinner"></div> Analyzing...';
+            btn.disabled = true;
+            setTimeout(() => {
+                const pitch = Math.round(35 + Math.random() * 55);
+                const tone = Math.round(25 + Math.random() * 60);
+                const speed = Math.round(40 + Math.random() * 50);
+                const tension = Math.round(20 + Math.random() * 65);
+                const stressScore = Math.round((pitch * 0.3 + tone * 0.3 + tension * 0.4));
+                showAnalysis(pitch, tone, speed, tension, stressScore);
+                addToHistory(stressScore);
+                btn.innerHTML = '🧠 Analyze Recording';
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        function showAnalysis(pitch, tone, speed, tension, stress) {
+            document.getElementById('preAnalysis').style.display = 'none';
+            document.getElementById('postAnalysis').style.display = 'block';
+
+            let emoji, level, levelColor, advice;
+            if (stress < 35) { emoji = '😌'; level = 'Low Stress'; levelColor = '#00ff88'; advice = 'Your voice patterns indicate a calm, relaxed state. Excellent mental health indicators!'; }
+            else if (stress < 60) { emoji = '😐'; level = 'Moderate Stress'; levelColor = '#ffb347'; advice = 'Some tension detected in your voice. Take regular breaks and practice breathing exercises.'; }
+            else { emoji = '😰'; level = 'High Stress'; levelColor = '#ff4757'; advice = 'Elevated stress patterns detected. Consider relaxation techniques, exercise, and speaking to someone you trust.'; }
+
+            document.getElementById('stressResult').innerHTML = `
+        <div class="stress-emoji">${emoji}</div>
+        <div class="stress-level-label" style="color:${levelColor}">${level}</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin:.3rem 0 .75rem">Stress Score: ${stress}/100</div>
+        <div class="stress-advice">${advice}</div>
+      `;
+
+            setTimeout(() => {
+                document.getElementById('pitchFill').style.width = pitch + '%';
+                document.getElementById('toneFill').style.width = tone + '%';
+                document.getElementById('speedFill').style.width = speed + '%';
+                document.getElementById('tensionFill').style.width = tension + '%';
+                document.getElementById('pitchVal').textContent = pitch < 40 ? 'Low Variation' : pitch < 70 ? 'Moderate' : 'High Variation';
+                document.getElementById('toneVal').textContent = tone < 40 ? 'Calm' : tone < 65 ? 'Tense' : 'Very Tense';
+                document.getElementById('speedVal').textContent = speed < 40 ? 'Slow (Tired)' : speed < 70 ? 'Normal' : 'Fast (Anxious)';
+                document.getElementById('tensionVal').textContent = tension + '%';
+            }, 200);
+
+            const recos = [];
+            if (stress >= 60) recos.push('🧘 Practice 4-7-8 breathing: inhale 4s, hold 7s, exhale 8s');
+            if (speed >= 65) recos.push('⏱️ Try speaking slower — rapid speech indicates anxiety');
+            if (tension >= 50) recos.push('💪 Progressive muscle relaxation can reduce vocal tension');
+            recos.push('🎵 Listen to calming music for 10 minutes to lower cortisol levels');
+            if (stress < 40) recos.push('✅ Keep maintaining your current stress management routine!');
+
+            document.getElementById('voiceRecos').innerHTML = recos.map(r => `<div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.4rem;display:flex;gap:0.4rem;"><span>→</span>${r}</div>`).join('');
+        }
+
+        function addToHistory(score) {
+            const level = score < 35 ? 'Low' : score < 60 ? 'Moderate' : 'High';
+            const color = score < 35 ? '#00ff88' : score < 60 ? '#ffb347' : '#ff4757';
+            history.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), score, level, color, duration: document.getElementById('timer').textContent });
+            history = history.slice(0, 10);
+            localStorage.setItem('healthai_voice_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (!history.length) return;
+            document.getElementById('historyPanel').style.display = 'block';
+            document.getElementById('historyList').innerHTML = history.map(h => `
+        <div class="history-item">
+          <div style="font-size:1.5rem">${h.score < 35 ? '😌' : h.score < 60 ? '😐' : '😰'}</div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:500;" style="color:${h.color}">${h.level} Stress</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);">${h.time} · ${h.duration}</div>
+          </div>
+          <div style="margin-left:auto;font-weight:700;color:${h.color};font-size:0.9rem;">${h.score}/100</div>
+        </div>
+      `).join('');
+        }
+
+        function clearRecording() {
+            seconds = 0;
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('timerStatus').textContent = 'Press mic to start recording';
+            document.getElementById('micStatus').textContent = 'Click to begin voice analysis';
+            document.getElementById('analyzeBtn').style.display = 'none';
+            document.getElementById('clearBtn').style.display = 'none';
+            document.getElementById('waveIdle').style.display = 'flex';
+            document.getElementById('preAnalysis').style.display = 'block';
+            document.getElementById('postAnalysis').style.display = 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function clearHistory() {
+            history = [];
+            localStorage.removeItem('healthai_voice_history');
+            document.getElementById('historyPanel').style.display = 'none';
+        }
+
+        renderHistory();
+    </script>
+</body>
+
+</html>

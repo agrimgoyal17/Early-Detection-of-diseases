@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Health Twin — HealthAI Pro</title>
+    <meta name="description"
+        content="Simulate your future health trajectory with AI-powered digital twin technology." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .twin-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .chart-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .timeline-cards {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            padding-bottom: 1.5rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .timeline-item:last-child {
+            border-left: none;
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        .timeline-year {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .timeline-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .scenario-btns {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .scenario-btn.active {
+            background: var(--grad-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        .scenario-btn:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .twin-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .twin-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .twin-stat-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .twin-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .intervention-panel {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .intervention-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .intervention-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .intervention-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .intervention-card.active {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .intervention-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .intervention-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .intervention-impact {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        /* AI Recommendations */
+        .ai-reco-section {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .reco-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .reco-header-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .reco-scenario-chip {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0.875rem;
+            border-radius: var(--radius-full);
+            border: 1px solid;
+        }
+
+        .reco-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .reco-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reco-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            border-radius: 2px 0 0 2px;
+        }
+
+        .reco-item.priority-high::before {
+            background: #ff4757;
+        }
+
+        .reco-item.priority-medium::before {
+            background: #ffb347;
+        }
+
+        .reco-item.priority-low::before {
+            background: #00ff88;
+        }
+
+        .reco-item:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .reco-item-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .reco-item-icon {
+            font-size: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .reco-item-meta {
+            flex: 1;
+        }
+
+        .reco-item-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .reco-priority-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.15rem 0.5rem;
+            border-radius: var(--radius-full);
+            display: inline-block;
+        }
+
+        .tag-high {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+        }
+
+        .tag-medium {
+            background: rgba(255, 179, 71, 0.15);
+            color: #ffb347;
+        }
+
+        .tag-low {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+
+        .reco-item-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.875rem;
+        }
+
+        .reco-impact-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .reco-impact-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .reco-impact-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .reco-impact-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reco-impact-pts {
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .reco-cta {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .reco-summary-box {
+            flex: 1;
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Lifestyle Sliders Section */
+        .lifestyle-panel {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.06));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            margin-top: 2rem;
+        }
+
+        .lifestyle-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .lifestyle-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lifestyle-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .lifestyle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .slider-group {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            transition: all var(--transition);
+        }
+
+        .slider-group:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .slider-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .slider-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .slider-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slider-input {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(0, 212, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+            transition: all 0.2s;
+        }
+
+        .slider-input::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+
+        .slider-input::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .slider-input::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+
+        .slider-range {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .slider-icon {
+            display: inline-block;
+            font-size: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        .lifestyle-reset-btn {
+            margin-top: 1.5rem;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.7rem 1.5rem;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+
+        .lifestyle-reset-btn:hover {
+            background: rgba(0, 212, 255, 0.08);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .slider-impact-badge {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.12);
+            color: #00ff88;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            margin-top: 0.75rem;
+        }
+
+        .slider-impact-badge.negative {
+            background: rgba(255, 71, 87, 0.12);
+            color: #ff4757;
+        }
+
+        @media (max-width: 900px) {
+            .twin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .twin-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .reco-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lifestyle-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lifestyle-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#l1)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#l1)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="l1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="health-data.html" class="nav-link">Health Data</a>
+                <a href="settings.html" class="nav-link">⚙️ Settings</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="coach.html" class="btn-nav-primary">Get Coach Plan</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">🤖 Digital <span class="gradient-text">Health Twin</span></h1>
+        <p class="page-subtitle">Simulate your future health across multiple lifestyle scenarios — see what changes
+            TODAY can do for TOMORROW</p>
+    </div>
+
+    <div class="page-content">
+        <!-- Stats Row -->
+        <div class="twin-stats">
+            <div class="twin-stat">
+                <div class="twin-stat-val" id="lifeExpVal">76</div>
+                <div class="twin-stat-label">Projected Life Expectancy</div>
+            </div>
+            <div class="twin-stat">
+                <div class="twin-stat-val" id="healthAt60">72%</div>
+                <div class="twin-stat-label">Health Score at Age 60</div>
+            </div>
+            <div class="twin-stat">
+                <div class="twin-stat-val" id="riskYear">2029</div>
+                <div class="twin-stat-label">First High Risk Year</div>
+            </div>
+        </div>
+
+        <!-- Scenario Toggle -->
+        <div class="scenario-btns">
+            <button class="scenario-btn active" onclick="loadScenario('current', this)">📊 Current Lifestyle</button>
+            <button class="scenario-btn" onclick="loadScenario('improved', this)">✅ Improved Habits</button>
+            <button class="scenario-btn" onclick="loadScenario('optimal', this)">🚀 Optimal Health</button>
+            <button class="scenario-btn" onclick="loadScenario('declined', this)">⚠️ Declining Habits</button>
+        </div>
+
+        <div class="twin-grid">
+            <!-- Chart -->
+            <div class="chart-card">
+                <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:0.5rem;">Health Score Projection</h2>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1.5rem;">Predicted health score
+                    from 2026 to 2035 based on your lifestyle</p>
+                <canvas id="twinChart" height="300"></canvas>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-cards">
+                <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:1.5rem;">🗓️ Health Timeline</h2>
+                <div id="timeline"></div>
+            </div>
+        </div>
+
+        <!-- 🎚️ Lifestyle Sliders - Interactive Feature -->
+        <div class="lifestyle-panel">
+            <div class="lifestyle-header">
+                <span style="font-size:2rem;">🎚️</span>
+                <div>
+                    <div class="lifestyle-title">Interactive Lifestyle Adjustment</div>
+                    <p class="lifestyle-subtitle">Move the sliders to see how lifestyle changes affect your health prediction in real-time</p>
+                </div>
+            </div>
+
+            <div class="lifestyle-grid">
+                <!-- Exercise Time -->
+                <div class="slider-group">
+                    <div class="slider-label-row">
+                        <label class="slider-label"><span class="slider-icon">🏃</span> Exercise Time</label>
+                        <span class="slider-value" id="exerciseVal">45</span>
+                    </div>
+                    <input type="range" class="slider-input" id="exerciseSlider" min="0" max="180" value="45" oninput="updateLifestyleSliders()">
+                    <div class="slider-range">0 min (Sedentary) → 180 min (Very Active)</div>
+                    <div class="slider-impact-badge" id="exerciseImpact">+8.5 Health Points/Year</div>
+                </div>
+
+                <!-- Sleep Hours -->
+                <div class="slider-group">
+                    <div class="slider-label-row">
+                        <label class="slider-label"><span class="slider-icon">😴</span> Sleep Hours</label>
+                        <span class="slider-value" id="sleepVal">7</span>
+                    </div>
+                    <input type="range" class="slider-input" id="sleepSlider" min="4" max="10" value="7" step="0.5" oninput="updateLifestyleSliders()">
+                    <div class="slider-range">4 hours (Poor) → 10 hours (Excessive)</div>
+                    <div class="slider-impact-badge" id="sleepImpact">+6 Health Points/Year</div>
+                </div>
+
+                <!-- Sugar Intake -->
+                <div class="slider-group">
+                    <div class="slider-label-row">
+                        <label class="slider-label"><span class="slider-icon">🍭</span> Sugar Intake</label>
+                        <span class="slider-value" id="sugarVal">50</span>
+                    </div>
+                    <input type="range" class="slider-input" id="sugarSlider" min="0" max="200" value="50" oninput="updateLifestyleSliders()">
+                    <div class="slider-range">0g (Minimal) → 200g (Excessive Daily)</div>
+                    <div class="slider-impact-badge negative" id="sugarImpact">-5 Health Points/Year</div>
+                </div>
+
+                <!-- Stress Level -->
+                <div class="slider-group">
+                    <div class="slider-label-row">
+                        <label class="slider-label"><span class="slider-icon">😰</span> Stress Level</label>
+                        <span class="slider-value" id="stressVal">45</span>
+                    </div>
+                    <input type="range" class="slider-input" id="stressSlider" min="0" max="100" value="45" oninput="updateLifestyleSliders()">
+                    <div class="slider-range">0% (Calm) → 100% (Highly Stressed)</div>
+                    <div class="slider-impact-badge negative" id="stressImpact">-7 Health Points/Year</div>
+                </div>
+            </div>
+
+            <button class="lifestyle-reset-btn" onclick="resetLifestyleSliders()">🔄 Reset to Default Values</button>
+        </div>
+
+        <!-- AI Recommendations Section -->
+        <div class="ai-reco-section" id="aiRecoSection">
+            <div class="reco-header">
+                <div class="reco-header-title">🤖 AI Recommendations</div>
+                <div class="reco-scenario-chip" id="recoChip">📊 Current Lifestyle</div>
+            </div>
+            <div class="reco-grid" id="recoGrid"></div>
+            <div class="reco-cta">
+                <div class="reco-summary-box" id="recoSummary"></div>
+                <a href="coach.html" class="btn-primary" style="white-space:nowrap;">💪 Get Full Coach Plan</a>
+            </div>
+        </div>
+
+        <!-- Interventions -->
+        <div class="intervention-panel">
+            <h2 style="font-size:1.15rem;font-weight:700;margin-bottom:0.5rem;">⚡ Lifestyle Interventions</h2>
+            <p style="font-size:0.85rem;color:var(--text-secondary);">Toggle interventions to see how they affect your
+                health trajectory</p>
+            <div class="intervention-grid" id="interventions">
+                <div class="intervention-card" onclick="toggleIntervention(this, 5)" data-impact="5">
+                    <div class="intervention-icon">🥗</div>
+                    <div class="intervention-title">Healthy Diet</div>
+                    <div class="intervention-impact">+5 Health Points/Year</div>
+                </div>
+                <div class="intervention-card" onclick="toggleIntervention(this, 8)" data-impact="8">
+                    <div class="intervention-icon">🏃</div>
+                    <div class="intervention-title">Daily Exercise 30min</div>
+                    <div class="intervention-impact">+8 Health Points/Year</div>
+                </div>
+                <div class="intervention-card" onclick="toggleIntervention(this, 6)" data-impact="6">
+                    <div class="intervention-icon">😴</div>
+                    <div class="intervention-title">7-8 Hours Sleep</div>
+                    <div class="intervention-impact">+6 Health Points/Year</div>
+                </div>
+                <div class="intervention-card" onclick="toggleIntervention(this, 12)" data-impact="12">
+                    <div class="intervention-icon">🚭</div>
+                    <div class="intervention-title">Quit Smoking</div>
+                    <div class="intervention-impact">+12 Health Points/Year</div>
+                </div>
+                <div class="intervention-card" onclick="toggleIntervention(this, 4)" data-impact="4">
+                    <div class="intervention-icon">💧</div>
+                    <div class="intervention-title">Drink 2.5L Water</div>
+                    <div class="intervention-impact">+4 Health Points/Year</div>
+                </div>
+                <div class="intervention-card" onclick="toggleIntervention(this, 7)" data-impact="7">
+                    <div class="intervention-icon">🧘</div>
+                    <div class="intervention-title">Stress Management</div>
+                    <div class="intervention-impact">+7 Health Points/Year</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        const years = [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
+        const scenarios = {
+            current: [82, 80, 78, 74, 70, 65, 62, 58, 55, 52, 50],
+            improved: [82, 83, 85, 84, 82, 80, 79, 77, 76, 74, 73],
+            optimal: [82, 85, 87, 88, 88, 87, 86, 85, 84, 83, 82],
+            declined: [82, 78, 73, 65, 58, 50, 42, 36, 30, 25, 20],
+        };
+        const timelines = {
+            current: [
+                { year: '2026', title: '✅ Stable Health', desc: 'Current lifestyle maintained. No immediate risks.', color: '#00ff88' },
+                { year: '2028', title: '⚠️ Medium Risk Emerging', desc: 'Diabetes risk grows to 45%. Consider dietary changes.', color: '#ffb347' },
+                { year: '2030', title: '🔴 High Risk Zone', desc: 'Without lifestyle change, high risk of hypertension and diabetes.', color: '#ff4757' },
+                { year: '2032', title: '⚠️ Multiple Complications', desc: 'Potential cardiovascular and metabolic complications.', color: '#ff4757' },
+                { year: '2035', title: '🚨 Critical Phase', desc: 'Strong intervention required. Early disease management essential.', color: '#ff4757' },
+            ],
+            improved: [
+                { year: '2026', title: '📈 Health Improving', desc: 'Better habits show measurable health gains.', color: '#00d4ff' },
+                { year: '2028', title: '✅ Stable & Strong', desc: 'Risk factors stabilized. Energy and vitality improving.', color: '#00ff88' },
+                { year: '2030', title: '✅ Healthy Range', desc: 'All key metrics within healthy range. Risk 30% lower.', color: '#00ff88' },
+                { year: '2032', title: '🌟 Optimal Performance', desc: 'Exceptional health trajectory. Disease risk minimal.', color: '#00ff88' },
+                { year: '2035', title: '🏆 Wellness Master', desc: 'You have achieved long-term health mastery.', color: '#00ff88' },
+            ],
+            optimal: [
+                { year: '2026', title: '🚀 Rapid Improvement', desc: 'Optimal habits creating exponential health gains.', color: '#00d4ff' },
+                { year: '2028', title: '💪 Peak Performance', desc: 'Biometric markers at optimal levels. Disease risk minimal.', color: '#00ff88' },
+                { year: '2030', title: '🌟 Exceptional Health', desc: 'Biological age 5 years younger than chronological age.', color: '#00ff88' },
+                { year: '2033', title: '🏆 Elite Health Status', desc: 'You are in the top 5% health bracket for your age group.', color: '#00ff88' },
+                { year: '2035', title: '✨ Longevity Zone', desc: 'Projected life expectancy increased by 8+ years.', color: '#00ff88' },
+            ],
+            declined: [
+                { year: '2026', title: '⚠️ Warning Signs', desc: 'Poor habits beginning to affect key health markers.', color: '#ffb347' },
+                { year: '2027', title: '🔴 High Risk Emerging', desc: 'Blood pressure and sugar levels elevating rapidly.', color: '#ff4757' },
+                { year: '2029', title: '🚨 Critical Risk', desc: 'Immediate medical attention recommended.', color: '#ff4757' },
+                { year: '2031', title: '🏥 Disease Onset Risk', desc: 'High probability of chronic disease without intervention.', color: '#ff4757' },
+                { year: '2035', title: '⚠️ Severe Complications', desc: 'Multiple organ systems at risk. Urgent lifestyle overhaul needed.', color: '#ff4757' },
+            ],
+        };
+
+        let currentScenario = 'current';
+        let interventionBonus = 0;
+        let chart;
+
+        function initChart(scenario) {
+            const ctx = document.getElementById('twinChart').getContext('2d');
+            const data = scenarios[scenario].map((v, i) => Math.min(100, v + (i * interventionBonus * 0.5)));
+            const colors = { current: '#00d4ff', improved: '#00ff88', optimal: '#7b2ff7', declined: '#ff4757' };
+            const color = colors[scenario];
+
+            if (chart) { chart.destroy(); }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years.map(y => y.toString()),
+                    datasets: [{
+                        label: 'Your Health Score',
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: `${color}18`,
+                        borderWidth: 3,
+                        pointBackgroundColor: color,
+                        pointBorderColor: 'transparent',
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        fill: true,
+                        tension: 0.4,
+                    }, {
+                        label: 'With Interventions',
+                        data: data.map((v, i) => Math.min(100, v + interventionBonus * (i * 0.7))),
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0,255,136,0.05)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#00ff88',
+                        pointRadius: 4,
+                        fill: false,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { labels: { color: '#8892a4', font: { family: 'Outfit', size: 12 } } },
+                        tooltip: {
+                            backgroundColor: 'rgba(6,15,30,0.95)',
+                            borderColor: 'rgba(0,212,255,0.3)',
+                            borderWidth: 1,
+                            titleColor: '#f0f4ff',
+                            bodyColor: '#8892a4',
+                            callbacks: {
+                                label: (v) => ` Health Score: ${Math.round(v.parsed.y)}/100`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8892a4', font: { family: 'Outfit' } } },
+                        y: {
+                            min: 0, max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8892a4', font: { family: 'Outfit' }, callback: v => v + '/100' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTimeline(scenario) {
+            const tl = document.getElementById('timeline');
+            const dotColors = { '✅': '#00ff88', '⚠️': '#ffb347', '🔴': '#ff4757', '🚨': '#ff4757', '📈': '#00d4ff', '🌟': '#7b2ff7', '💪': '#00ff88', '🚀': '#00d4ff', '🏆': '#00ff88', '✨': '#7b2ff7', '🏥': '#ff4757' };
+            tl.innerHTML = timelines[scenario].map(t => `
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:${t.color};border-color:${t.color};box-shadow:0 0 8px ${t.color}40;"></div>
+          <div class="timeline-year">${t.year}</div>
+          <div class="timeline-title" style="color:${t.color}">${t.title}</div>
+          <div class="timeline-desc">${t.desc}</div>
+        </div>
+      `).join('');
+        }
+
+        /* ── AI Recommendations Data ── */
+        const aiRecommendations = {
+            current: {
+                chip: '📊 Current Lifestyle',
+                chipStyle: 'color:#00d4ff;border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.08)',
+                summary: '⚠️ Your current trajectory shows declining health by 2030. Taking action NOW can prevent 3 major chronic diseases. The AI has identified your top priority interventions based on your risk profile.',
+                items: [
+                    { icon: '🏃', title: 'Start Daily Exercise', priority: 'high', tag: 'tag-high', desc: 'You are currently sedentary. Adding just 30 minutes of brisk walking daily can reduce your heart disease risk by 35% and diabetes risk by 40% within 6 months.', impact: 85, impactColor: '#ff4757', pts: '+8 pts/yr' },
+                    { icon: '🥗', title: 'Fix Your Diet Now', priority: 'high', tag: 'tag-high', desc: 'Reduce fast food to max 1x/week. Increase vegetables to 5+ servings daily. This single change can lower your blood sugar by 15-20 mg/dL and reduce obesity risk by 32%.', impact: 78, impactColor: '#ff4757', pts: '+5 pts/yr' },
+                    { icon: '😴', title: 'Prioritize 7-8 Hours Sleep', priority: 'medium', tag: 'tag-medium', desc: 'Insufficient sleep is accelerating your health decline. Sleep deprivation raises cortisol by 37% and increases diabetes risk. Set a fixed 10:30 PM bedtime.', impact: 65, impactColor: '#ffb347', pts: '+6 pts/yr' },
+                    { icon: '💧', title: 'Increase Water Intake', priority: 'medium', tag: 'tag-medium', desc: 'Drink 2.5L water daily. Proper hydration reduces cravings, flushes toxins, and improves kidney function. Use a water bottle reminder app.', impact: 50, impactColor: '#ffb347', pts: '+4 pts/yr' },
+                    { icon: '🧘', title: 'Stress Management', priority: 'medium', tag: 'tag-medium', desc: 'Chronic stress is a silent killer. Practice 10 minutes of meditation or deep breathing daily to reduce cortisol by 26% and improve immune function.', impact: 60, impactColor: '#ffb347', pts: '+7 pts/yr' },
+                    { icon: '🩺', title: 'Get a Health Checkup', priority: 'low', tag: 'tag-low', desc: 'Schedule a full body checkup including blood glucose, lipid profile, and blood pressure. Early detection can prevent 80% of chronic disease complications.', impact: 40, impactColor: '#00ff88', pts: 'Preventive' },
+                ]
+            },
+            improved: {
+                chip: '✅ Improved Habits',
+                chipStyle: 'color:#00ff88;border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.06)',
+                summary: '✅ You are on a great path! Your improved habits are already showing results. Focus on consistency and adding strength training to lock in long-term gains. You are projected to reduce disease risk by 40% by 2030.',
+                items: [
+                    { icon: '💪', title: 'Add Strength Training', priority: 'medium', tag: 'tag-medium', desc: 'You have cardio covered — now add 2 days/week of bodyweight or gym strength training. This builds muscle mass, boosts metabolism by 8%, and improves insulin sensitivity.', impact: 72, impactColor: '#00d4ff', pts: '+6 pts/yr' },
+                    { icon: '🥦', title: 'Diversify Your Nutrition', priority: 'medium', tag: 'tag-medium', desc: 'Add more color to your plate — aim for 6 different vegetables weekly. Polyphenols and antioxidants from diverse plants reduce inflammation markers by 28%.', impact: 65, impactColor: '#00d4ff', pts: '+4 pts/yr' },
+                    { icon: '🧬', title: 'Track Your Biomarkers', priority: 'low', tag: 'tag-low', desc: 'Get quarterly blood tests for HbA1c, cholesterol, Vitamin D and thyroid. Tracking trends allows early course correction before problems become serious.', impact: 55, impactColor: '#00ff88', pts: 'Preventive' },
+                    { icon: '🫁', title: 'Practice Breathwork', priority: 'low', tag: 'tag-low', desc: 'Add 5 minutes of box breathing or Wim Hof method in the morning. This activates the parasympathetic nervous system and reduces chronic inflammation.', impact: 48, impactColor: '#00ff88', pts: '+3 pts/yr' },
+                ]
+            },
+            optimal: {
+                chip: '🚀 Optimal Health',
+                chipStyle: 'color:#7b2ff7;border-color:rgba(123,47,247,0.4);background:rgba(123,47,247,0.08)',
+                summary: '🌟 Outstanding! You are on the optimal health trajectory. Your biological age is projected to be 5+ years younger than your chronological age by 2030. These refinements will help you maintain elite health status.',
+                items: [
+                    { icon: '🏔️', title: 'Advanced Training Protocol', priority: 'low', tag: 'tag-low', desc: 'Incorporate HIIT (High Intensity Interval Training) 2x/week. This continues improving VO2 max and cardiovascular efficiency beyond standard exercise levels.', impact: 88, impactColor: '#7b2ff7', pts: '+10 pts/yr' },
+                    { icon: '🧪', title: 'Optimize Micronutrients', priority: 'low', tag: 'tag-low', desc: 'Consider testing and optimizing Vitamin D, Omega-3, and Magnesium levels. Optimal micronutrient status is linked to 23% lower all-cause mortality.', impact: 75, impactColor: '#7b2ff7', pts: '+3 pts/yr' },
+                    { icon: '🌙', title: 'Advanced Sleep Optimization', priority: 'low', tag: 'tag-low', desc: 'Track sleep cycles with a wearable. Optimize your sleep environment — 18°C room, complete darkness, and consistent wake time improve deep sleep by 34%.', impact: 70, impactColor: '#7b2ff7', pts: '+4 pts/yr' },
+                    { icon: '🫶', title: 'Maintain Social Connections', priority: 'low', tag: 'tag-low', desc: 'Strong social bonds reduce all-cause mortality by 50%. Regular social interaction lowers cortisol, boosts immunity, and adds an average of 7 years to life.', impact: 65, impactColor: '#00ff88', pts: 'Longevity' },
+                ]
+            },
+            declined: {
+                chip: '⚠️ Declining Habits',
+                chipStyle: 'color:#ff4757;border-color:rgba(255,71,87,0.4);background:rgba(255,71,87,0.08)',
+                summary: '🚨 URGENT: Your current trajectory shows severe health decline with disease onset possible by 2027. Immediate action is critical. Start with one change today — every day you delay increases your risk exponentially.',
+                items: [
+                    { icon: '🚨', title: 'Consult a Doctor TODAY', priority: 'high', tag: 'tag-high', desc: 'Your declining metrics suggest immediate medical evaluation is needed. Get blood pressure, blood glucose, and cardiac screening this week. Early intervention can reverse 70% of damage.', impact: 95, impactColor: '#ff4757', pts: 'URGENT' },
+                    { icon: '🚭', title: 'Quit Smoking Immediately', priority: 'high', tag: 'tag-high', desc: 'Smoking is the single biggest factor in your decline. Quitting today reduces heart attack risk by 50% within 1 year. Use NRT or medication-assisted therapy for support.', impact: 90, impactColor: '#ff4757', pts: '+12 pts/yr' },
+                    { icon: '🏃', title: 'Start Moving — Any Movement', priority: 'high', tag: 'tag-high', desc: 'Even 10 minutes of walking daily is better than zero. Start small, build gradually. Physical inactivity contributes to 35% of premature deaths in India. Begin today.', impact: 85, impactColor: '#ff4757', pts: '+8 pts/yr' },
+                    { icon: '🥤', title: 'Eliminate Sugary Drinks', priority: 'high', tag: 'tag-high', desc: 'Stop all sugary beverages immediately. They are the #1 contributor to your escalating diabetes and obesity risk. Replace with water, green tea, or coconut water.', impact: 80, impactColor: '#ff4757', pts: '+5 pts/yr' },
+                    { icon: '😴', title: 'Fix Your Sleep Urgently', priority: 'medium', tag: 'tag-medium', desc: 'Chronic sleep deprivation is causing systemic inflammation. Set a hard bedtime of 11 PM. No screens after 9 PM. This can reverse cortisol damage within 3 weeks.', impact: 70, impactColor: '#ffb347', pts: '+6 pts/yr' },
+                    { icon: '🧘', title: 'Stress Intervention', priority: 'medium', tag: 'tag-medium', desc: 'Chronic stress is destroying your immune system. Seek counseling, practice daily meditation, and reduce work hours if possible. High stress speeds aging by 10-15 years.', impact: 65, impactColor: '#ffb347', pts: '+7 pts/yr' },
+                ]
+            },
+        };
+
+        function renderRecommendations(scenario) {
+            const data = aiRecommendations[scenario];
+            const chip = document.getElementById('recoChip');
+            chip.textContent = data.chip;
+            chip.style.cssText = data.chipStyle;
+
+            document.getElementById('recoSummary').innerHTML = data.summary;
+
+            document.getElementById('recoGrid').innerHTML = data.items.map((r, idx) => `
+                <div class="reco-item priority-${r.priority}" style="animation: fadeInUp 0.4s ease ${idx * 0.08}s both;">
+                    <div class="reco-item-head">
+                        <div class="reco-item-icon">${r.icon}</div>
+                        <div class="reco-item-meta">
+                            <div class="reco-item-title">${r.title}</div>
+                            <span class="reco-priority-tag ${r.tag}">${r.priority} priority</span>
+                        </div>
+                    </div>
+                    <div class="reco-item-desc">${r.desc}</div>
+                    <div class="reco-impact-row">
+                        <div class="reco-impact-label">Impact</div>
+                        <div class="reco-impact-bar">
+                            <div class="reco-impact-fill" style="width:0%;background:${r.impactColor};" data-width="${r.impact}"></div>
+                        </div>
+                        <div class="reco-impact-pts" style="color:${r.impactColor}">${r.pts}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Animate progress bars
+            setTimeout(() => {
+                document.querySelectorAll('.reco-impact-fill').forEach(bar => {
+                    bar.style.width = bar.dataset.width + '%';
+                });
+            }, 200);
+        }
+
+        function loadScenario(scenario, btn) {
+            currentScenario = scenario;
+            document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            initChart(scenario);
+            renderTimeline(scenario);
+            updateStats(scenario);
+            renderRecommendations(scenario);
+        }
+
+        function updateStats(scenario) {
+            const lastScore = scenarios[scenario][scenarios[scenario].length - 1];
+            document.getElementById('lifeExpVal').textContent = scenario === 'optimal' ? '84' : scenario === 'improved' ? '79' : scenario === 'declined' ? '68' : '76';
+            document.getElementById('healthAt60').textContent = Math.round(lastScore * 0.9) + '%';
+            document.getElementById('riskYear').textContent = scenario === 'optimal' ? '2034+' : scenario === 'improved' ? '2031' : scenario === 'declined' ? '2026' : '2029';
+        }
+
+        function toggleIntervention(card, impact) {
+            card.classList.toggle('active');
+            interventionBonus = Array.from(document.querySelectorAll('.intervention-card.active'))
+                .reduce((sum, c) => sum + parseInt(c.dataset.impact), 0);
+            initChart(currentScenario);
+        }
+
+        // ── 🎚️ Lifestyle Sliders Functions ──
+        function updateLifestyleSliders() {
+            const exercise = parseInt(document.getElementById('exerciseSlider').value);
+            const sleep = parseFloat(document.getElementById('sleepSlider').value);
+            const sugar = parseInt(document.getElementById('sugarSlider').value);
+            const stress = parseInt(document.getElementById('stressSlider').value);
+
+            // Update display values
+            document.getElementById('exerciseVal').textContent = exercise;
+            document.getElementById('sleepVal').textContent = sleep;
+            document.getElementById('sugarVal').textContent = sugar;
+            document.getElementById('stressVal').textContent = stress;
+
+            // Calculate health impact based on lifestyle factors
+            let exerciseImpact = 0;
+            if (exercise < 30) exerciseImpact = -3;
+            else if (exercise >= 30 && exercise <= 60) exerciseImpact = 8.5;
+            else if (exercise > 60 && exercise <= 120) exerciseImpact = 12;
+            else exerciseImpact = 15;
+
+            let sleepImpact = 0;
+            if (sleep < 6) sleepImpact = -4;
+            else if (sleep >= 6 && sleep < 7) sleepImpact = 4;
+            else if (sleep >= 7 && sleep <= 8) sleepImpact = 6;
+            else if (sleep > 8 && sleep <= 9) sleepImpact = 4;
+            else sleepImpact = -2;
+
+            let sugarImpact = 0;
+            if (sugar <= 25) sugarImpact = 2;
+            else if (sugar > 25 && sugar <= 50) sugarImpact = -1;
+            else if (sugar > 50 && sugar <= 100) sugarImpact = -5;
+            else sugarImpact = -10;
+
+            let stressImpact = 0;
+            if (stress <= 20) stressImpact = 5;
+            else if (stress > 20 && stress <= 40) stressImpact = 2;
+            else if (stress > 40 && stress <= 60) stressImpact = -3;
+            else if (stress > 60 && stress <= 80) stressImpact = -7;
+            else stressImpact = -12;
+
+            // Update impact badges
+            const exerciseBadge = document.getElementById('exerciseImpact');
+            exerciseBadge.textContent = (exerciseImpact > 0 ? '+' : '') + exerciseImpact + ' Health Points/Year';
+            exerciseBadge.className = exerciseImpact > 0 ? 'slider-impact-badge' : 'slider-impact-badge negative';
+
+            const sleepBadge = document.getElementById('sleepImpact');
+            sleepBadge.textContent = (sleepImpact > 0 ? '+' : '') + sleepImpact + ' Health Points/Year';
+            sleepBadge.className = sleepImpact > 0 ? 'slider-impact-badge' : 'slider-impact-badge negative';
+
+            const sugarBadge = document.getElementById('sugarImpact');
+            sugarBadge.textContent = (sugarImpact > 0 ? '+' : '') + sugarImpact + ' Health Points/Year';
+            sugarBadge.className = sugarImpact > 0 ? 'slider-impact-badge' : 'slider-impact-badge negative';
+
+            const stressBadge = document.getElementById('stressImpact');
+            stressBadge.textContent = (stressImpact > 0 ? '+' : '') + stressImpact + ' Health Points/Year';
+            stressBadge.className = stressImpact > 0 ? 'slider-impact-badge' : 'slider-impact-badge negative';
+
+            // Calculate total lifestyle bonus
+            const totalImpact = exerciseImpact + sleepImpact + sugarImpact + stressImpact;
+            
+            // Create custom scenario with slider adjustments
+            const customScenario = scenarios[currentScenario].map((score, idx) => {
+                const yearFactor = idx / scenarios[currentScenario].length;
+                const adjustment = totalImpact * yearFactor * 0.5;
+                return Math.max(0, Math.min(100, score + adjustment));
+            });
+
+            // Update chart with custom scenario
+            if (chart) {
+                chart.data.datasets[0].data = customScenario;
+                chart.update('none');
+            }
+
+            // Update stats based on slider values
+            const lastScore = customScenario[customScenario.length - 1];
+            document.getElementById('healthAt60').textContent = Math.round(lastScore * 0.9) + '%';
+        }
+
+        function resetLifestyleSliders() {
+            document.getElementById('exerciseSlider').value = 45;
+            document.getElementById('sleepSlider').value = 7;
+            document.getElementById('sugarSlider').value = 50;
+            document.getElementById('stressSlider').value = 45;
+            updateLifestyleSliders();
+        }
+
+        // Init
+        initChart('current');
+        renderTimeline('current');
+        updateStats('current');
+        renderRecommendations('current');
+        resetLifestyleSliders(); // Initialize sliders
+    </script>
+</body>
+
+</html>

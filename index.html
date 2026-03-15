@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Preventive Health Intelligence Platform</title>
+  <meta name="description" content="Detect and prevent lifestyle diseases early with AI-powered health monitoring, voice stress analysis, food recognition, and predictive simulation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body>
+  <!-- Particle Canvas Background -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7b2ff7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+      </div>
+      <div class="nav-links" id="navLinks">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#technology" class="nav-link">Technology</a>
+        <a href="pages/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="pages/auth.html" class="btn-nav-primary">Get Started</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-container">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        <span>AI-Powered Preventive Healthcare</span>
+      </div>
+      <h1 class="hero-title">
+        Predict Diseases<br />
+        <span class="gradient-text">Before They Start</span>
+      </h1>
+      <p class="hero-description">
+        Advanced AI monitors your lifestyle habits, analyzes voice stress, detects facial health signals, 
+        and simulates your future health — giving you the power to prevent diseases before they happen.
+      </p>
+      <div class="hero-actions">
+        <a href="pages/auth.html" class="btn-primary" id="heroStartBtn">
+          <span>Start Health Analysis</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#features" class="btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16"/></svg>
+          <span>See How It Works</span>
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-number" data-target="95">0</div>
+          <div class="stat-label">Accuracy Rate</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="12">0</div>
+          <div class="stat-label">AI Features</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="500">0</div>
+          <div class="stat-label">Health Metrics</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="10">0</div>
+          <div class="stat-label">Disease Types Detected</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="health-orb">
+        <div class="orb-ring orb-ring-1"></div>
+        <div class="orb-ring orb-ring-2"></div>
+        <div class="orb-ring orb-ring-3"></div>
+        <div class="orb-core">
+          <div class="ecg-line">
+            <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+              <path class="ecg-path" d="M0,30 L30,30 L40,10 L50,50 L60,5 L70,55 L80,30 L120,30 L130,10 L140,50 L150,5 L160,55 L170,30 L200,30" 
+                    fill="none" stroke="#00d4ff" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="orb-icon">
+            <svg viewBox="0 0 80 80" fill="none">
+              <path d="M40 15 C30 5 15 8 15 22 C15 35 25 42 40 55 C55 42 65 35 65 22 C65 8 50 5 40 15Z" fill="url(#heartGrad)" opacity="0.9"/>
+              <defs>
+                <linearGradient id="heartGrad" x1="0" y1="0" x2="80" y2="80">
+                  <stop offset="0%" stop-color="#00d4ff"/>
+                  <stop offset="100%" stop-color="#7b2ff7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <!-- Floating Data Cards -->
+        <div class="floating-card card-1">
+          <div class="fc-icon">💓</div>
+          <div class="fc-data">
+            <div class="fc-value">72 BPM</div>
+            <div class="fc-label">Heart Rate</div>
+          </div>
+        </div>
+        <div class="floating-card card-2">
+          <div class="fc-icon">🧠</div>
+          <div class="fc-data">
+            <div class="fc-value">Low</div>
+            <div class="fc-label">Stress Level</div>
+          </div>
+        </div>
+        <div class="floating-card card-3">
+          <div class="fc-icon">🩺</div>
+          <div class="fc-data">
+            <div class="fc-value">85/100</div>
+            <div class="fc-label">Health Score</div>
+          </div>
+        </div>
+        <div class="floating-card card-4">
+          <div class="fc-icon">⚡</div>
+          <div class="fc-data">
+            <div class="fc-value">Active</div>
+            <div class="fc-label">Status</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-badge">Features</div>
+        <h2 class="section-title">Everything You Need for <span class="gradient-text">Preventive Health</span></h2>
+        <p class="section-desc">12 AI-powered modules working together to give you a complete picture of your health</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-href="pages/health-data.html">
+          <div class="feature-icon">🧬</div>
+          <h3>Disease Risk Prediction</h3>
+          <p>AI analyzes 15+ health metrics to predict risk for diabetes, heart disease, obesity and more</p>
+          <div class="feature-tag">Core Feature</div>
+        </div>
+        <div class="feature-card featured" data-href="pages/digital-twin.html">
+          <div class="feature-icon">🤖</div>
+          <h3>Digital Health Twin</h3>
+          <p>Simulate your future health on a timeline from 2026–2035 with interactive predictions</p>
+          <div class="feature-tag">AI Powered</div>
+        </div>
+        <div class="feature-card" data-href="pages/health-mirror.html">
+          <div class="feature-icon">🪞</div>
+          <h3>AI Health Mirror</h3>
+          <p>Webcam-based face analysis detecting heart rate, fatigue, posture and stress indicators</p>
+          <div class="feature-tag">Real-time</div>
+        </div>
+        <div class="feature-card" data-href="pages/food-analysis.html">
+          <div class="feature-icon">🍎</div>
+          <h3>Food Image Analysis</h3>
+          <p>Upload food photos for instant calorie detection, nutrition analysis and health impact scores</p>
+          <div class="feature-tag">Computer Vision</div>
+        </div>
+        <div class="feature-card" data-href="pages/voice-stress.html">
+          <div class="feature-icon">🎙️</div>
+          <h3>Voice Stress Detection</h3>
+          <p>Record your voice to analyze pitch, tone and speech patterns for stress level assessment</p>
+          <div class="feature-tag">NLP + Audio</div>
+        </div>
+        <div class="feature-card" data-href="pages/coach.html">
+          <div class="feature-icon">💪</div>
+          <h3>AI Health Coach</h3>
+          <p>Personalized daily health plans, exercise routines and nutrition advice based on your data</p>
+          <div class="feature-tag">Personalized</div>
+        </div>
+        <div class="feature-card" data-href="pages/gamification.html">
+          <div class="feature-icon">🏆</div>
+          <h3>Gamified Health Score</h3>
+          <p>Earn points, unlock badges and level up from Beginner to Wellness Master</p>
+          <div class="feature-tag">Gamification</div>
+        </div>
+        <div class="feature-card" data-href="pages/city-map.html">
+          <div class="feature-icon">🗺️</div>
+          <h3>City Health Risk Map</h3>
+          <p>Interactive map showing disease risk trends across Indian cities with real-time data</p>
+          <div class="feature-tag">Geo-Analytics</div>
+        </div>
+        <div class="feature-card" data-href="pages/dashboard.html">
+          <div class="feature-icon">📊</div>
+          <h3>Health Dashboard</h3>
+          <p>Unified view of all health metrics, risk scores, twin predictions and progress charts</p>
+          <div class="feature-tag">Analytics</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-badge">Process</div>
+        <h2 class="section-title">How <span class="gradient-text">HealthAI Pro</span> Works</h2>
+      </div>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3>Create Your Profile</h3>
+            <p>Enter your basic health details — age, weight, height, lifestyle type and location</p>
+          </div>
+          <div class="step-icon">👤</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3>Input Health Data</h3>
+            <p>Log blood pressure, sugar levels, sleep, exercise habits and diet information</p>
+          </div>
+          <div class="step-icon">📋</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3>AI Analysis</h3>
+            <p>Our 12-module AI engine processes your data across voice, vision and behavioral signals</p>
+          </div>
+          <div class="step-icon">🧠</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-number">04</div>
+          <div class="step-content">
+            <h3>Get Predictions</h3>
+            <p>Receive risk assessments, digital twin simulations and a personalized prevention plan</p>
+          </div>
+          <div class="step-icon">🎯</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technology Section -->
+  <section class="tech-section" id="technology">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-badge">Technology</div>
+        <h2 class="section-title">Powered by <span class="gradient-text">Cutting-Edge AI</span></h2>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-icon">🔬</div>
+          <h4>Machine Learning</h4>
+          <p>Predictive models trained on millions of health data points</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-icon">👁️</div>
+          <h4>Computer Vision</h4>
+          <p>Real-time facial analysis and food recognition algorithms</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-icon">🎵</div>
+          <h4>Audio Analysis</h4>
+          <p>Deep learning voice pattern recognition for stress detection</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-icon">📡</div>
+          <h4>Digital Twin AI</h4>
+          <p>Health simulation engines modeling 10-year trajectories</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-icon">🌐</div>
+          <h4>Geo-Health Analytics</h4>
+          <p>City-level disease trend mapping with real-time updates</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-icon">🔒</div>
+          <h4>Privacy First</h4>
+          <p>On-device processing with end-to-end encryption</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="section-container cta-container">
+      <h2 class="cta-title">Ready to <span class="gradient-text">Take Control</span> of Your Health?</h2>
+      <p class="cta-desc">Join thousands who are using AI to prevent diseases before they start</p>
+      <a href="pages/auth.html" class="btn-primary btn-large" id="ctaStartBtn">
+        <span>Start Your Free Analysis</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="18" stroke="url(#footerLogoGrad)" stroke-width="2"/>
+              <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#footerLogoGrad)" stroke-width="2" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="footerLogoGrad" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#7b2ff7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+        </div>
+        <p>AI-powered preventive healthcare for a healthier tomorrow</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="pages/dashboard.html">Dashboard</a>
+          <a href="pages/health-data.html">Health Analysis</a>
+          <a href="pages/digital-twin.html">Digital Twin</a>
+          <a href="pages/city-map.html">City Map</a>
+        </div>
+        <div class="footer-col">
+          <h4>Features</h4>
+          <a href="pages/health-mirror.html">AI Mirror</a>
+          <a href="pages/food-analysis.html">Food Analysis</a>
+          <a href="pages/voice-stress.html">Voice Stress</a>
+          <a href="pages/coach.html">Health Coach</a>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <a href="pages/auth.html">Login</a>
+          <a href="pages/profile.html">Profile</a>
+          <a href="pages/gamification.html">Health Score</a>
+          <a href="pages/report.html">Health Report</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 HealthAI Pro — Built for Hackathon Innovation</p>
+    </div>
+  </footer>
+
+  <script src="js/particles.js"></script>
+  <script src="js/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings — HealthAI Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/main.css" />
+    <style>
+        /* Light theme overrides */
+        [data-theme="light"] {
+            --bg-primary: #f0f4ff;
+            --bg-secondary: #e4eaf8;
+            --text-primary: #0d1b2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border: rgba(0, 0, 0, 0.12);
+            --border-hover: rgba(0, 212, 255, 0.4);
+        }
+
+        [data-theme="light"] body {
+            background: #f0f4ff;
+        }
+
+        [data-theme="light"] .settings-card,
+        [data-theme="light"] .profile-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .settings-input,
+        [data-theme="light"] .settings-select {
+            background: #fff;
+            border-color: rgba(0, 0, 0, 0.15);
+            color: #0d1b2e;
+        }
+
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .settings-sidebar {
+            position: sticky;
+            top: 100px;
+        }
+
+        .settings-nav {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .settings-nav-item:hover {
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .settings-nav-item.active {
+            background: var(--grad-primary);
+            color: white;
+        }
+
+        .settings-nav-item .nav-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-card {
+            background: rgba(6, 15, 30, 0.7);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.06));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            border: 3px solid rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--grad-primary);
+            border: 2px solid var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .settings-input,
+        .settings-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.88rem;
+            padding: 0.65rem 1rem;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .settings-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%238892a4'%3E%3Cpath d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+
+        .settings-input:focus,
+        .settings-select:focus {
+            border-color: var(--primary);
+        }
+
+        .settings-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Theme cards */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .theme-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .theme-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .theme-card.selected {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.06);
+        }
+
+        .theme-preview {
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            gap: 4px;
+            padding: 6px;
+            overflow: hidden;
+        }
+
+        .theme-preview-dark {
+            background: #060f1e;
+        }
+
+        .theme-preview-light {
+            background: #f0f4ff;
+        }
+
+        .theme-preview-auto {
+            background: linear-gradient(135deg, #060f1e 50%, #f0f4ff 50%);
+        }
+
+        .theme-bar {
+            flex: 1;
+            border-radius: 4px;
+        }
+
+        .theme-card-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .theme-card-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* Toggle switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .toggle-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
+        }
+
+        input:checked+.toggle-slider {
+            background: var(--grad-primary);
+        }
+
+        input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* History */
+        .history-stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .h-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .h-stat-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .h-stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .h-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-md);
+            background: rgba(0, 212, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .h-info {
+            flex: 1;
+        }
+
+        .h-title {
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .h-date {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        .h-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+        }
+
+        .badge-green {
+            background: rgba(0, 255, 136, 0.12);
+            color: #00ff88;
+        }
+
+        .badge-yellow {
+            background: rgba(255, 179, 71, 0.12);
+            color: #ffb347;
+        }
+
+        .badge-blue {
+            background: rgba(0, 212, 255, 0.12);
+            color: #00d4ff;
+        }
+
+        /* About */
+        .creator-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.1));
+            border: 1px solid rgba(123, 47, 247, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .creator-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--grad-secondary);
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 0 30px rgba(123, 47, 247, 0.4);
+        }
+
+        .creator-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .creator-role {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .about-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.875rem;
+        }
+
+        .about-feature {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .about-feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .about-feature-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-full);
+            padding: 0.3rem 0.875rem;
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+
+        /* Save button */
+        .save-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--grad-primary);
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-full);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+            z-index: 999;
+            transform: translateY(100px);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .save-toast.show {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 900px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: static;
+            }
+
+            .settings-nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .theme-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-stat-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">
+                <div class="logo-icon"><svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#lg)" stroke-width="2" />
+                        <path d="M8 20h4l3-6 4 12 3-10 3 7 3-3h4" stroke="url(#lg)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#7b2ff7" />
+                            </linearGradient>
+                        </defs>
+                    </svg></div>
+                <span class="logo-text">HealthAI<span class="logo-accent">Pro</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="coach.html" class="nav-link">Coach</a>
+                <a href="profile.html" class="btn-nav-primary">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1 class="page-title">⚙️ <span class="gradient-text">Settings</span></h1>
+        <p class="page-subtitle">Manage your profile, preferences, activity history and more</p>
+    </div>
+
+    <div class="page-content">
+        <div class="settings-layout">
+
+            <!-- Sidebar Nav -->
+            <div class="settings-sidebar">
+                <div class="settings-nav">
+                    <div class="settings-nav-item active" onclick="showSection('profile', this)">
+                        <span class="nav-icon">👤</span> Profile
+                    </div>
+                    <div class="settings-nav-item" onclick="showSection('theme', this)">
+                        <span class="nav-icon">🎨</span> Appearance
+                    </div>
+                    <div class="settings-nav-item" onclick="showSection('history', this)">
+                        <span class="nav-icon">📋</span> Health History
+                    </div>
+                    <div class="settings-nav-item" onclick="showSection('notifications', this)">
+                        <span class="nav-icon">🔔</span> Notifications
+                    </div>
+                    <div class="settings-nav-item" onclick="showSection('privacy', this)">
+                        <span class="nav-icon">🔒</span> Privacy & Data
+                    </div>
+                    <div class="settings-nav-item" onclick="showSection('about', this)">
+                        <span class="nav-icon">ℹ️</span> About
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div>
+
+                <!-- ── Profile ── -->
+                <div class="settings-section active" id="sec-profile">
+                    <!-- Profile Card -->
+                    <div class="profile-card">
+                        <div class="avatar-wrap">
+                            <div class="avatar-circle" id="avatarCircle">AG</div>
+                            <div class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()">✏️
+                            </div>
+                            <input type="file" id="avatarInput" accept="image/*" style="display:none"
+                                onchange="handleAvatar(this)" />
+                        </div>
+                        <div>
+                            <div style="font-size:1.2rem;font-weight:700;" id="profileDisplayName">Agrim Goyal</div>
+                            <div style="font-size:0.8rem;color:var(--primary);margin-top:0.2rem;"
+                                id="profileDisplayEmail">agrim@healthai.pro</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;">Member since March
+                                2025</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">👤 Personal Information</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input class="settings-input" id="firstName" type="text" value="Agrim"
+                                    placeholder="First name" />
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input class="settings-input" id="lastName" type="text" value="Goyal"
+                                    placeholder="Last name" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input class="settings-input" id="email" type="email" value="agrim@healthai.pro"
+                                    placeholder="Email" />
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile Number</label>
+                                <input class="settings-input" id="phone" type="tel" value="+91 98765 43210"
+                                    placeholder="Phone" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input class="settings-input" id="dob" type="date" value="2000-01-01" />
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select class="settings-select" id="gender">
+                                    <option value="male" selected>Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>City / Location</label>
+                            <input class="settings-input" id="city" type="text" value="New Delhi, India"
+                                placeholder="City" />
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">🏥 Health Profile</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Height (cm)</label>
+                                <input class="settings-input" id="height" type="number" value="175" min="100"
+                                    max="250" />
+                            </div>
+                            <div class="form-group">
+                                <label>Weight (kg)</label>
+                                <input class="settings-input" id="weight" type="number" value="70" min="30" max="250" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Blood Group</label>
+                                <select class="settings-select" id="bloodGroup">
+                                    <option>A+</option>
+                                    <option>A-</option>
+                                    <option>B+</option>
+                                    <option selected>B-</option>
+                                    <option>AB+</option>
+                                    <option>AB-</option>
+                                    <option>O+</option>
+                                    <option>O-</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Activity Level</label>
+                                <select class="settings-select" id="activity">
+                                    <option>Sedentary</option>
+                                    <option selected>Lightly Active</option>
+                                    <option>Moderately Active</option>
+                                    <option>Very Active</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Medical Conditions (optional)</label>
+                            <input class="settings-input" id="conditions" type="text"
+                                placeholder="e.g. Diabetes, Hypertension, None" value="None" />
+                        </div>
+                        <button class="btn-primary" style="width:100%;margin-top:0.5rem;" onclick="saveProfile()">💾
+                            Save Profile Changes</button>
+                    </div>
+                </div>
+
+                <!-- ── Appearance ── -->
+                <div class="settings-section" id="sec-theme">
+                    <div class="settings-card">
+                        <div class="settings-card-title">🎨 Theme Mode</div>
+                        <div class="theme-grid">
+                            <div class="theme-card selected" id="theme-dark" onclick="applyTheme('dark')">
+                                <div class="theme-preview theme-preview-dark">
+                                    <div class="theme-bar" style="background:rgba(0,212,255,0.4)"></div>
+                                    <div class="theme-bar" style="background:rgba(123,47,247,0.4)"></div>
+                                    <div class="theme-bar" style="background:rgba(255,255,255,0.1)"></div>
+                                </div>
+                                <div class="theme-card-label">🌙 Dark</div>
+                                <div class="theme-card-desc">Default futuristic dark mode</div>
+                            </div>
+                            <div class="theme-card" id="theme-light" onclick="applyTheme('light')">
+                                <div class="theme-preview theme-preview-light">
+                                    <div class="theme-bar" style="background:rgba(0,180,255,0.4)"></div>
+                                    <div class="theme-bar" style="background:rgba(100,50,200,0.3)"></div>
+                                    <div class="theme-bar" style="background:rgba(0,0,0,0.08)"></div>
+                                </div>
+                                <div class="theme-card-label">☀️ Light</div>
+                                <div class="theme-card-desc">Clean bright interface</div>
+                            </div>
+                            <div class="theme-card" id="theme-auto" onclick="applyTheme('auto')">
+                                <div class="theme-preview theme-preview-auto">
+                                    <div class="theme-bar" style="background:rgba(0,212,255,0.5)"></div>
+                                    <div class="theme-bar" style="background:rgba(255,255,255,0.15)"></div>
+                                </div>
+                                <div class="theme-card-label">⚙️ System</div>
+                                <div class="theme-card-desc">Follow OS preference</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">🖋️ Font Size</div>
+                        <div class="form-group">
+                            <label>Interface Font Size</label>
+                            <select class="settings-select" id="fontSize" onchange="applyFontSize(this.value)">
+                                <option value="14">Small (14px)</option>
+                                <option value="16" selected>Medium (16px) — Default</option>
+                                <option value="18">Large (18px)</option>
+                                <option value="20">Extra Large (20px)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">✨ Visual Effects</div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Particle Background Animation</div>
+                                <div class="toggle-desc">Floating particles in background</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="toggleParticles" checked
+                                    onchange="toggleParticlesBg(this.checked)" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Glassmorphism Cards</div>
+                                <div class="toggle-desc">Blurred glass-effect panels</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Hover Micro-Animations</div>
+                                <div class="toggle-desc">Subtle animations on hover</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" checked />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── History ── -->
+                <div class="settings-section" id="sec-history">
+                    <div class="settings-card">
+                        <div class="settings-card-title">📊 Health Activity Summary</div>
+                        <div class="history-stat-row">
+                            <div class="h-stat">
+                                <div class="h-stat-val">28</div>
+                                <div class="h-stat-label">Days Active</div>
+                            </div>
+                            <div class="h-stat">
+                                <div class="h-stat-val">82</div>
+                                <div class="h-stat-label">Health Score</div>
+                            </div>
+                            <div class="h-stat">
+                                <div class="h-stat-val">14</div>
+                                <div class="h-stat-label">Reports Generated</div>
+                            </div>
+                            <div class="h-stat">
+                                <div class="h-stat-val">7🔥</div>
+                                <div class="h-stat-label">Day Streak</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">🕘 Recent Health Activity</div>
+                        <div class="history-item">
+                            <div class="h-icon">📊</div>
+                            <div class="h-info">
+                                <div class="h-title">Full Health Report Generated</div>
+                                <div class="h-date">Today, 7:30 PM</div>
+                            </div>
+                            <span class="h-badge badge-green">Excellent</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🤖</div>
+                            <div class="h-info">
+                                <div class="h-title">Digital Twin Simulation — Optimal Scenario</div>
+                                <div class="h-date">Today, 6:15 PM</div>
+                            </div>
+                            <span class="h-badge badge-blue">Simulated</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🏆</div>
+                            <div class="h-info">
+                                <div class="h-title">7-Day Streak Achieved on Gamification</div>
+                                <div class="h-date">Yesterday, 11:00 PM</div>
+                            </div>
+                            <span class="h-badge badge-green">Milestone</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🍎</div>
+                            <div class="h-info">
+                                <div class="h-title">Food Analysis — Lunch logged (450 kcal)</div>
+                                <div class="h-date">Yesterday, 1:20 PM</div>
+                            </div>
+                            <span class="h-badge badge-blue">Logged</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🎙️</div>
+                            <div class="h-info">
+                                <div class="h-title">Voice Stress Test — Score: 32% (Low)</div>
+                                <div class="h-date">Mar 12, 9:00 AM</div>
+                            </div>
+                            <span class="h-badge badge-green">Low Stress</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🩺</div>
+                            <div class="h-info">
+                                <div class="h-title">Disease Risk Assessment Updated</div>
+                                <div class="h-date">Mar 11, 4:00 PM</div>
+                            </div>
+                            <span class="h-badge badge-yellow">Medium Risk</span>
+                        </div>
+                        <div class="history-item">
+                            <div class="h-icon">🪞</div>
+                            <div class="h-info">
+                                <div class="h-title">AI Health Mirror — Face Scan Completed</div>
+                                <div class="h-date">Mar 10, 8:30 AM</div>
+                            </div>
+                            <span class="h-badge badge-blue">Analyzed</span>
+                        </div>
+                        <div style="text-align:center;margin-top:1rem;">
+                            <a href="report.html" class="btn-primary" style="display:inline-block;">📄 Download Full
+                                Health Report</a>
+                        </div>
+                    </div>
+
+                    <div class="settings-card"
+                        style="background:rgba(255,71,87,0.04);border-color:rgba(255,71,87,0.2);">
+                        <div class="settings-card-title" style="color:var(--danger);">🗑️ Data Management</div>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Clear your health
+                            history data stored locally. This action cannot be undone.</p>
+                        <button onclick="clearHistory()"
+                            style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:#ff4757;border-radius:var(--radius-full);padding:0.5rem 1.5rem;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:600;transition:all 0.2s;">🗑️
+                            Clear Health History</button>
+                    </div>
+                </div>
+
+                <!-- ── Notifications ── -->
+                <div class="settings-section" id="sec-notifications">
+                    <div class="settings-card">
+                        <div class="settings-card-title">🔔 Notification Preferences</div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Daily Health Reminders</div>
+                                <div class="toggle-desc">Remind about water, exercise and sleep targets</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Weekly Health Report</div>
+                                <div class="toggle-desc">Summary of your weekly health progress</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Coach ARIA Tips</div>
+                                <div class="toggle-desc">Daily personalized health tips from ARIA</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Medication Reminders</div>
+                                <div class="toggle-desc">Custom reminders for your medications</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">City Health Alerts</div>
+                                <div class="toggle-desc">Air quality and disease outbreak alerts for your city</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Streak Notifications</div>
+                                <div class="toggle-desc">Celebrate milestones and health streaks</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Privacy ── -->
+                <div class="settings-section" id="sec-privacy">
+                    <div class="settings-card">
+                        <div class="settings-card-title">🔒 Privacy & Security</div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Save Health Data Locally</div>
+                                <div class="toggle-desc">Store your health data in browser localStorage</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Analytics & Usage Data</div>
+                                <div class="toggle-desc">Help improve HealthAI Pro with anonymous usage data</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Face Scan Data</div>
+                                <div class="toggle-desc">Health Mirror camera data processed locally only</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Voice Data Processing</div>
+                                <div class="toggle-desc">Voice stress data analyzed locally on your device</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" checked /><span
+                                    class="toggle-slider"></span></label>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-card-title">🔑 Security</div>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input class="settings-input" type="password" placeholder="Enter current password" />
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input class="settings-input" type="password" placeholder="New password" />
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <input class="settings-input" type="password" placeholder="Confirm new password" />
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="showToast('🔑 Password updated successfully!')">🔑 Update
+                            Password</button>
+                    </div>
+                </div>
+
+                <!-- ── About ── -->
+                <div class="settings-section" id="sec-about">
+                    <div class="creator-card">
+                        <div class="creator-avatar">AG</div>
+                        <div class="creator-name">Agrim Goyal</div>
+                        <div class="creator-role">Creator & Developer — HealthAI Pro</div>
+                        <div class="version-badge">⚡ HealthAI Pro v2.0 — 2026</div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">🌟 About HealthAI Pro</div>
+                        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.8;margin-bottom:1.25rem;">
+                            <strong>HealthAI Pro</strong> is an AI-powered preventive health intelligence platform
+                            designed by <strong style="color:var(--primary)">Agrim Goyal</strong>. It combines
+                            cutting-edge machine learning, digital health twin simulation, and real-time biomarker
+                            analysis to empower users with proactive health insights.
+                        </p>
+                        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.8;">
+                            The mission is simple: <em style="color:var(--primary)">"Prevent disease before it
+                                happens."</em> By making advanced AI health analysis accessible to everyone, HealthAI
+                            Pro helps detect risks early, personalize wellness plans, and promote long-term healthy
+                            living.
+                        </p>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">🚀 Platform Features</div>
+                        <div class="about-feature-grid">
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🪞</div>
+                                <div class="about-feature-title">AI Health Mirror</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🤖</div>
+                                <div class="about-feature-title">Digital Health Twin</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🍎</div>
+                                <div class="about-feature-title">Food AI Analysis</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🎙️</div>
+                                <div class="about-feature-title">Voice Stress Detection</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">💪</div>
+                                <div class="about-feature-title">AI Health Coach (ARIA)</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🏆</div>
+                                <div class="about-feature-title">Health Gamification</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">🗺️</div>
+                                <div class="about-feature-title">City Risk Map</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">📊</div>
+                                <div class="about-feature-title">Health Dashboard</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">📋</div>
+                                <div class="about-feature-title">Health Reports</div>
+                            </div>
+                            <div class="about-feature">
+                                <div class="about-feature-icon">⚙️</div>
+                                <div class="about-feature-title">Smart Settings</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card" style="text-align:center;">
+                        <div style="font-size:0.8rem;color:var(--text-muted);line-height:2;">
+                            <div>📧 <a href="mailto:agrim@healthai.pro"
+                                    style="color:var(--primary);">agrim@healthai.pro</a></div>
+                            <div>🏗️ Built with HTML, CSS &amp; JavaScript</div>
+                            <div>🤖 AI &amp; Chart.js Powered</div>
+                            <div style="margin-top:1rem;font-size:0.75rem;">© 2026 HealthAI Pro — Created by
+                                <strong>Agrim Goyal</strong>. All rights reserved.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /main -->
+        </div><!-- /layout -->
+    </div>
+
+    <div class="save-toast" id="saveToast">✅ Changes Saved!</div>
+
+    <script src="../js/particles.js"></script>
+    <script>
+        // ── Section Navigation ──
+        function showSection(id, el) {
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('sec-' + id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        // ── Toast ──
+        function showToast(msg) {
+            const t = document.getElementById('saveToast');
+            t.textContent = msg || '✅ Changes Saved!';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ── Profile Save ──
+        function saveProfile() {
+            const fn = document.getElementById('firstName').value;
+            const ln = document.getElementById('lastName').value;
+            const em = document.getElementById('email').value;
+            document.getElementById('profileDisplayName').textContent = fn + ' ' + ln;
+            document.getElementById('profileDisplayEmail').textContent = em;
+            const initials = (fn[0] || '') + (ln[0] || '');
+            document.getElementById('avatarCircle').textContent = initials.toUpperCase();
+            localStorage.setItem('hai_profile', JSON.stringify({
+                fn, ln, em,
+                phone: document.getElementById('phone').value,
+                city: document.getElementById('city').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                bloodGroup: document.getElementById('bloodGroup').value,
+                activity: document.getElementById('activity').value,
+                conditions: document.getElementById('conditions').value,
+            }));
+            showToast('✅ Profile updated successfully!');
+        }
+
+        // ── Avatar ──
+        function handleAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const av = document.getElementById('avatarCircle');
+                    av.style.backgroundImage = 'url(' + e.target.result + ')';
+                    av.style.backgroundSize = 'cover';
+                    av.style.backgroundPosition = 'center';
+                    av.textContent = '';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ── Theme ──
+        function applyTheme(t) {
+            const root = document.documentElement;
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('theme-' + t).classList.add('selected');
+            if (t === 'auto') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                root.setAttribute('data-theme', t);
+            }
+            localStorage.setItem('hai_theme', t);
+            showToast('🎨 Theme applied: ' + t.charAt(0).toUpperCase() + t.slice(1));
+        }
+
+        // ── Font Size ──
+        function applyFontSize(size) {
+            document.documentElement.style.fontSize = size + 'px';
+            localStorage.setItem('hai_fontsize', size);
+            showToast('🖋️ Font size updated!');
+        }
+
+        // ── Particles Toggle ──
+        function toggleParticlesBg(on) {
+            const c = document.getElementById('particles-canvas');
+            if (c) c.style.opacity = on ? '1' : '0';
+        }
+
+        // ── Clear History ──
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear your health history? This cannot be undone.')) {
+                localStorage.removeItem('healthai_coach_points');
+                localStorage.removeItem('healthai_food_log');
+                localStorage.removeItem('healthai_voice_log');
+                showToast('🗑️ Health history cleared.');
+            }
+        }
+
+        // ── Load Saved Settings ──
+        (function init() {
+            // Theme
+            const savedTheme = localStorage.getItem('hai_theme') || 'dark';
+            applyTheme(savedTheme);
+
+            // Font size
+            const savedFont = localStorage.getItem('hai_fontsize');
+            if (savedFont) {
+                document.documentElement.style.fontSize = savedFont + 'px';
+                document.getElementById('fontSize').value = savedFont;
+            }
+
+            // Profile
+            const p = JSON.parse(localStorage.getItem('hai_profile') || '{}');
+            if (p.fn) document.getElementById('firstName').value = p.fn;
+            if (p.ln) document.getElementById('lastName').value = p.ln;
+            if (p.em) document.getElementById('email').value = p.em;
+            if (p.fn || p.ln) {
+                document.getElementById('profileDisplayName').textContent = (p.fn + ' ' + p.ln).trim();
+                document.getElementById('avatarCircle').textContent = ((p.fn[0] || '') + (p.ln[0] || '')).toUpperCase();
+            }
+        })();
+    </script>
+</body>
+
+</html>
