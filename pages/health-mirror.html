@@ -15,8 +15,9 @@
     <style>
         .mirror-layout {
             display: grid;
-            grid-template-columns: 1fr 360px;
+            grid-template-columns: 1fr 380px;
             gap: 2rem;
+            align-items: start;
         }
 
         .camera-card {
@@ -253,6 +254,202 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* 🆕 Face Region Detection Styles */
+        .face-regions {
+            position: absolute;
+            inset: 0;
+            display: none;
+        }
+
+        .face-regions.active {
+            display: block;
+        }
+
+        .face-region {
+            position: absolute;
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .face-region.detected {
+            border-color: rgba(0, 255, 136, 0.6);
+            box-shadow: inset 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .face-region.warning {
+            border-color: rgba(255, 179, 71, 0.6);
+            box-shadow: inset 0 0 15px rgba(255, 179, 71, 0.2);
+        }
+
+        .face-region.danger {
+            border-color: rgba(255, 71, 87, 0.6);
+            box-shadow: inset 0 0 15px rgba(255, 71, 87, 0.2);
+        }
+
+        .region-label {
+            position: absolute;
+            background: rgba(6, 15, 30, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--primary);
+            top: -20px;
+            left: 0;
+            white-space: nowrap;
+        }
+
+        /* 🆕 Skin Analysis Card */
+        .skin-analysis-card {
+            background: linear-gradient(135deg, rgba(123, 47, 247, 0.08), rgba(0, 212, 255, 0.06));
+            border: 1px solid rgba(123, 47, 247, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            margin-top: 2rem;
+        }
+
+        .skin-analysis-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .skin-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+        }
+
+        .skin-indicator {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.875rem;
+            text-align: center;
+            transition: all var(--transition);
+        }
+
+        .skin-indicator.detected {
+            background: rgba(255, 71, 87, 0.08);
+            border-color: rgba(255, 71, 87, 0.3);
+        }
+
+        .skin-indicator.healthy {
+            background: rgba(0, 255, 136, 0.08);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .skin-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .skin-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .skin-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .skin-status.detected {
+            color: #ff4757;
+        }
+
+        .skin-status.healthy {
+            color: #00ff88;
+        }
+
+        /* 🆕 Insight Card */
+        .insight-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(123, 47, 247, 0.06));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .insight-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .insight-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 🆕 Lifestyle Mapping */
+        .lifestyle-risks {
+            background: rgba(255, 71, 87, 0.06);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            border-radius: var(--radius-md);
+            padding: 0.875rem;
+            margin-top: 0.75rem;
+        }
+
+        .lifestyle-risk-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .lifestyle-risk-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .risk-indicator {
+            display: inline-flex;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.6rem;
+            margin-top: 0.1rem;
+        }
+
+        .risk-indicator.high {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.4);
+        }
+
+        .risk-indicator.medium {
+            background: rgba(255, 179, 71, 0.2);
+            color: #ffb347;
+            border: 1px solid rgba(255, 179, 71, 0.4);
+        }
+
+        @media (max-width: 900px) {
+            .mirror-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .skin-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 
@@ -309,6 +506,25 @@
                         <div class="corner br"></div>
                         <div class="scan-line" id="scanLine"></div>
                         <div class="face-frame" id="faceFrame" style="display:none;"></div>
+                        
+                        <!-- 🆕 Face Region Detection -->
+                        <div class="face-regions" id="faceRegions">
+                            <div class="face-region" id="regionForehead">
+                                <div class="region-label">Forehead</div>
+                            </div>
+                            <div class="face-region" id="regionLeftCheek">
+                                <div class="region-label">L. Cheek</div>
+                            </div>
+                            <div class="face-region" id="regionRightCheek">
+                                <div class="region-label">R. Cheek</div>
+                            </div>
+                            <div class="face-region" id="regionUnderEyes">
+                                <div class="region-label">Under Eyes</div>
+                            </div>
+                            <div class="face-region" id="regionJawline">
+                                <div class="region-label">Jawline</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="camera-placeholder" id="cameraPlaceholder">
                         <div
@@ -344,7 +560,7 @@
                                 type="checkbox" id="checkFatigue" checked /> Fatigue</label>
                         <label
                             style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input
-                                type="checkbox" id="checkPosture" /> Posture</label>
+                                type="checkbox" id="checkSkin" checked /> 🆕 Skin Health</label>
                     </div>
                 </div>
             </div>
@@ -356,8 +572,22 @@
                     <p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:2rem 0;">Start the
                         camera to begin real-time health analysis</p>
                 </div>
+                
+                <!-- 🆕 Skin Analysis Section -->
+                <div class="skin-analysis-card" id="skinAnalysisCard" style="display:none;">
+                    <div class="skin-analysis-title">🔍 Skin Health Analysis</div>
+                    <div class="skin-grid" id="skinGrid"></div>
+                </div>
+
+                <!-- 🆕 Facial Insight -->
+                <div class="insight-card" id="insightCard" style="display:none;">
+                    <div class="insight-title">💡 Smart Insight</div>
+                    <div class="insight-text" id="insightText"></div>
+                    <div class="lifestyle-risks" id="lifestyleRisks"></div>
+                </div>
+
                 <div class="reco-card" id="recommendations" style="display:none;">
-                    <div class="reco-title">💡 AI Recommendations</div>
+                    <div class="reco-title">🎯 AI Recommendations</div>
                     <div id="recoList"></div>
                 </div>
             </div>
@@ -422,19 +652,175 @@
             }, 3000);
         }
 
+        // 🆕 Face Region Detection & Positioning
+        function updateFaceRegions() {
+            const viewport = document.querySelector('.camera-viewport');
+            const w = viewport.clientWidth;
+            const h = viewport.clientHeight;
+
+            // Define proportional coordinates for regions
+            const regions = {
+                forehead: { x: 0.25, y: 0.1, width: 0.5, height: 0.15 },
+                leftCheek: { x: 0.05, y: 0.35, width: 0.35, height: 0.25 },
+                rightCheek: { x: 0.6, y: 0.35, width: 0.35, height: 0.25 },
+                underEyes: { x: 0.2, y: 0.28, width: 0.6, height: 0.12 },
+                jawline: { x: 0.15, y: 0.62, width: 0.7, height: 0.18 }
+            };
+
+            Object.entries(regions).forEach(([key, pos]) => {
+                const regionEl = document.getElementById(`region${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                if (regionEl) {
+                    regionEl.style.left = (pos.x * w) + 'px';
+                    regionEl.style.top = (pos.y * h) + 'px';
+                    regionEl.style.width = (pos.width * w) + 'px';
+                    regionEl.style.height = (pos.height * h) + 'px';
+                }
+            });
+        }
+
+        // 🆕 Skin Analysis Engine
+        function analyzeSkinHealth(tick) {
+            const skinData = {
+                acne: {
+                    icon: '🔴',
+                    name: 'Acne/Pimples',
+                    detected: Math.random() > 0.6,
+                    regions: ['forehead', 'leftCheek', 'rightCheek']
+                },
+                darkCircles: {
+                    icon: '👁️',
+                    name: 'Dark Circles',
+                    detected: Math.random() > 0.5,
+                    regions: ['underEyes']
+                },
+                oiliness: {
+                    icon: '💧',
+                    name: 'Oily Skin',
+                    detected: Math.random() > 0.65,
+                    regions: ['forehead', 'leftCheek', 'rightCheek']
+                },
+                drySkin: {
+                    icon: '🏜️',
+                    name: 'Dry Patches',
+                    detected: Math.random() > 0.75,
+                    regions: ['jawline']
+                }
+            };
+            return skinData;
+        }
+
+        // 🆕 Lifestyle Mapping Engine
+        function mapToLifestyleRisks(hr, stress, fatigue, skinData) {
+            const risks = [];
+
+            // Rule-based mapping
+            if (skinData.darkCircles.detected && fatigue > 55) {
+                risks.push({
+                    indicator: '👁️ Dark circles + High fatigue',
+                    cause: 'Likely poor sleep quality',
+                    riskLevel: 'high',
+                    suggestion: 'Prioritize 7-8 hours sleep'
+                });
+            }
+
+            if (skinData.acne.detected && stress > 60) {
+                risks.push({
+                    indicator: '🔴 Acne on forehead + High stress',
+                    cause: 'Stress hormones affecting skin',
+                    riskLevel: 'high',
+                    suggestion: 'Practice stress management techniques'
+                });
+            }
+
+            if (skinData.acne.detected && skinData.oiliness.detected) {
+                risks.push({
+                    indicator: '🔴 Cheek acne + Oily skin',
+                    cause: 'May indicate poor diet/nutrition',
+                    riskLevel: 'medium',
+                    suggestion: 'Reduce junk food & sugary drinks'
+                });
+            }
+
+            if (skinData.drySkin.detected) {
+                risks.push({
+                    indicator: '🏜️ Dry skin patches',
+                    cause: 'Possibly low hydration',
+                    riskLevel: 'medium',
+                    suggestion: 'Drink 2.5+ liters water daily'
+                });
+            }
+
+            if (hr > 85 && stress > 65) {
+                risks.push({
+                    indicator: '💓 High heart rate + Stress',
+                    cause: 'Lifestyle imbalance/anxiety',
+                    riskLevel: 'high',
+                    suggestion: 'Practice breathing exercises'
+                });
+            }
+
+            if (fatigue > 70) {
+                risks.push({
+                    indicator: '😪 Severe fatigue',
+                    cause: 'Inadequate rest or overwork',
+                    riskLevel: 'medium',
+                    suggestion: 'Take regular breaks, improve sleep'
+                });
+            }
+
+            return risks;
+        }
+
+        // 🆕 Generate Smart Insight
+        function generateSmartInsight(hr, stress, fatigue, skinData, risks) {
+            const insights = [];
+
+            if (risks.length === 0) {
+                return 'Your facial indicators and health signals look excellent! Continue your healthy lifestyle habits.';
+            }
+
+            const primaryRisks = risks.filter(r => r.riskLevel === 'high');
+            const conditions = [];
+
+            if (skinData.darkCircles.detected && fatigue > 55) conditions.push('poor sleep');
+            if (skinData.acne.detected && stress > 60) conditions.push('high stress');
+            if (skinData.oiliness.detected) conditions.push('dietary imbalance');
+            if (stress > 65) conditions.push('lifestyle stress');
+
+            let insight = `Your facial indicators and health signals suggest ${conditions.join(' and ')}, which may increase your lifestyle disease risk.`;
+
+            if (primaryRisks.length > 0) {
+                insight += ` Key concern: ${primaryRisks[0].cause.toLowerCase()}.`;
+            }
+
+            return insight;
+        }
+
         function updateResults(tick) {
             const hr = 68 + Math.floor(Math.sin(tick * 0.4) * 8 + Math.random() * 4);
             const stress = Math.round(30 + Math.sin(tick * 0.3) * 15 + Math.random() * 10);
             const fatigue = Math.round(25 + Math.sin(tick * 0.2) * 20 + Math.random() * 8);
-            const posture = Math.round(70 + Math.sin(tick * 0.5) * 15);
             const confidence = 87 + Math.floor(Math.random() * 8);
+
+            // 🆕 Get skin analysis
+            const skinData = analyzeSkinHealth(tick);
+
+            // 🆕 Map to lifestyle risks
+            const lifestyleRisks = mapToLifestyleRisks(hr, stress, fatigue, skinData);
+
+            // 🆕 Generate smart insight
+            const insight = generateSmartInsight(hr, stress, fatigue, skinData, lifestyleRisks);
+
+            // Update face regions dynamically
+            updateFaceRegions();
+            document.getElementById('faceRegions').classList.add('active');
+            updateRegionStatus(skinData);
 
             const stressColor = stress >= 60 ? '#ff4757' : stress >= 40 ? '#ffb347' : '#00ff88';
             const fatigueColor = fatigue >= 60 ? '#ff4757' : fatigue >= 40 ? '#ffb347' : '#00ff88';
-            const postureColor = posture >= 70 ? '#00ff88' : posture >= 50 ? '#ffb347' : '#ff4757';
 
             document.getElementById('analysisResults').innerHTML = `
-        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:1rem;display:flex;justify-content:space-between;">
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.75rem;display:flex;justify-content:space-between;">
           <span>AI Confidence: ${confidence}%</span>
           <span>Updated ${new Date().toLocaleTimeString()}</span>
         </div>
@@ -462,26 +848,76 @@
             <div class="metric-info-bar"><div class="metric-info-fill" style="width:${fatigue}%;background:${fatigueColor};"></div></div>
           </div>
         </div>
-        <div class="metric-row">
-          <div class="metric-emoji">🪑</div>
-          <div class="metric-info">
-            <div class="metric-info-name">Posture Quality</div>
-            <div class="metric-info-value" style="color:${postureColor}">${posture >= 70 ? 'Good' : posture >= 50 ? 'Fair' : 'Poor'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${posture}%)</span></div>
-            <div class="metric-info-bar"><div class="metric-info-fill" style="width:${posture}%;background:${postureColor};"></div></div>
+      `;
+
+            // 🆕 Render skin analysis
+            const skinHtml = Object.entries(skinData).map(([key, data]) => `
+        <div class="skin-indicator ${data.detected ? 'detected' : 'healthy'}">
+          <div class="skin-icon">${data.icon}</div>
+          <div class="skin-name">${data.name}</div>
+          <div class="skin-status ${data.detected ? 'detected' : 'healthy'}">
+            ${data.detected ? 'Detected' : 'Clear'}
           </div>
+        </div>
+      `).join('');
+
+            document.getElementById('skinAnalysisCard').style.display = 'block';
+            document.getElementById('skinGrid').innerHTML = skinHtml;
+
+            // 🆕 Render insight and lifestyle risks
+            document.getElementById('insightCard').style.display = 'block';
+            document.getElementById('insightText').textContent = insight;
+
+            const risksHtml = lifestyleRisks.map(risk => `
+        <div class="lifestyle-risk-item">
+          <div class="risk-indicator ${risk.riskLevel}">${risk.riskLevel === 'high' ? '⚠️' : '💡'}</div>
+          <div>
+            <strong>${risk.indicator}</strong><br>
+            <span style="font-size:0.75rem;">${risk.cause}</span>
+          </div>
+        </div>
+      `).join('');
+
+            document.getElementById('lifestyleRisks').innerHTML = risksHtml || `
+        <div class="lifestyle-risk-item">
+          <div class="risk-indicator" style="background:rgba(0,255,136,0.2);color:#00ff88;border:1px solid rgba(0,255,136,0.4);">✓</div>
+          <div><strong>No major lifestyle risks detected</strong> — Keep maintaining healthy habits!</div>
         </div>
       `;
 
+            // 🆕 Enhanced recommendations
             const recos = [];
-            if (hr > 80) recos.push('💓 Elevated heart rate — try deep breathing or a short walk');
-            if (stress >= 50) recos.push('🧘 Moderate stress detected — consider a 5-minute meditation break');
-            if (fatigue >= 50) recos.push('😴 Fatigue signs present — a 20-minute nap can improve performance by 34%');
-            if (posture < 65) recos.push('🪑 Adjust your sitting posture — keep spine aligned and feet flat');
-            if (!recos.length) recos.push('✅ All metrics look great! Keep up the excellent work.');
+            if (hr > 80) recos.push('💓 Elevated heart rate — practice deep breathing or take a short walk');
+            if (stress >= 60) recos.push('🧘 High stress detected — daily meditation (10 min) recommended');
+            if (fatigue >= 60) recos.push('😴 Fatigue signs detected — prioritize 7-8 hours of quality sleep');
+            if (skinData.darkCircles.detected) recos.push('👁️ Dark circles suggest poor sleep — establish a fixed bedtime');
+            if (skinData.acne.detected && stress > 60) recos.push('🔴 Stress-induced acne detected — reduce caffeine & try yoga');
+            if (skinData.oiliness.detected) recos.push('💧 Oily skin suggests hormonal imbalance — eat more water-rich foods');
+            if (skinData.drySkin.detected) recos.push('🏜️ Dry skin detected — increase hydration and use moisturizer');
+            if (lifestyleRisks.length > 0 && !recos.length) recos.push('⚡ Address the lifestyle risks identified above');
+            if (!recos.length) recos.push('✅ All metrics look excellent! Continue your healthy lifestyle.');
 
             const rp = document.getElementById('recommendations');
             rp.style.display = 'block';
             document.getElementById('recoList').innerHTML = recos.map(r => `<div class="reco-item"><span>→</span><span>${r}</span></div>`).join('');
+        }
+
+        // 🆕 Update region visual status
+        function updateRegionStatus(skinData) {
+            const regionMap = {
+                regionForehead: skinData.acne.detected && skinData.acne.regions.includes('forehead'),
+                regionLeftCheek: skinData.acne.detected && skinData.acne.regions.includes('leftCheek'),
+                regionRightCheek: skinData.acne.detected && skinData.acne.regions.includes('rightCheek'),
+                regionUnderEyes: skinData.darkCircles.detected,
+                regionJawline: skinData.drySkin.detected
+            };
+
+            Object.entries(regionMap).forEach(([regionId, isIssue]) => {
+                const el = document.getElementById(regionId);
+                if (el) {
+                    el.className = 'face-region' + (isIssue ? ' danger' : ' detected');
+                }
+            });
         }
 
         function showToast(msg, type) {
